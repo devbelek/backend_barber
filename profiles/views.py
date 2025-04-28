@@ -6,6 +6,7 @@ from .models import Favorite, Review
 from .serializers import FavoriteSerializer, ReviewSerializer
 from users.serializers import UserSerializer
 from services.models import Service
+from django.db.models import Avg, Count
 
 
 class FavoriteViewSet(viewsets.ModelViewSet):
@@ -32,7 +33,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
             return Response({'status': 'Услуга добавлена в избранное'}, status=status.HTTP_201_CREATED)
         return Response({'status': 'Услуга уже в избранном'}, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['delete'])
+    @action(detail=True, methods=['delete'], url_path='remove')
     def remove(self, request, pk=None):
         try:
             favorite = Favorite.objects.get(user=request.user, service_id=pk)
@@ -59,3 +60,36 @@ class BarberListView(generics.ListAPIView):
 
     def get_queryset(self):
         return User.objects.filter(profile__user_type='barber')
+
+
+class BarberDetailView(generics.RetrieveAPIView):
+    """
+    Получение детальной информации о барбере, включая рейтинг и специализацию
+    """
+    serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]
+    queryset = User.objects.filter(profile__user_type='barber')
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+
+        # Дополняем информацию рейтингом и количеством отзывов
+        reviews = Review.objects.filter(barber=instance)
+        avg_rating = reviews.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0
+        review_count = reviews.count()
+
+        data['avg_rating'] = round(avg_rating, 1)
+        data['review_count'] = review_count
+
+        # Добавляем портфолио (услуги с фото)
+        portfolio = []
+        services = Service.objects.filter(barber=instance)
+        for service in services:
+            if service.image:
+                portfolio.append(service.image.url)
+
+        data['portfolio'] = portfolio
+
+        return Response(data)
