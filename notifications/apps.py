@@ -1,6 +1,9 @@
 from django.apps import AppConfig
 
 
-class NotificationsConfig(AppConfig):
+class BookingsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'notifications'
+    name = 'bookings'
+
+    def ready(self):
+        import bookings.signals  # Импортируем сигналы

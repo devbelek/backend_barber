@@ -1,6 +1,8 @@
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions, filters, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from .models import Service
 from .serializers import ServiceSerializer
@@ -22,3 +24,32 @@ class ServiceViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [permissions.AllowAny]
         return [permission() for permission in permission_classes]
+
+    @action(detail=False, methods=['get'])
+    def recommendations(self, request):
+        """
+        Возвращает рекомендации услуг на основе местоположения пользователя.
+        """
+        try:
+            latitude = request.query_params.get('latitude')
+            longitude = request.query_params.get('longitude')
+
+            if not latitude or not longitude:
+                return Response(
+                    {"error": "Необходимо указать параметры 'latitude' и 'longitude'"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Получаем все услуги с ограничением по городу Бишкек
+            services = Service.objects.filter(location__icontains='Бишкек')[:10]
+
+            # Сериализуем данные
+            serializer = self.get_serializer(services, many=True)
+
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Ошибка при получении рекомендаций: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )

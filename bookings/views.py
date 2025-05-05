@@ -3,6 +3,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import Booking
 from .serializers import BookingSerializer
 from .permissions import IsClientOrBarberOwner
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from datetime import datetime, timedelta
+import pytz
 
 
 class BookingViewSet(viewsets.ModelViewSet):
@@ -26,3 +30,66 @@ class BookingViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
+
+    @action(detail=False, methods=['get'])
+    def available_slots(self, request):
+        """
+        Возвращает доступные временные слоты для указанного барбера и даты.
+        """
+        barber_id = request.query_params.get('barber')
+        date_str = request.query_params.get('date')
+
+        if not barber_id or not date_str:
+            return Response(
+                {"error": "Необходимо указать параметры 'barber' и 'date'"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Преобразуем строку даты в объект date
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+            # Получаем временную зону из настроек Django
+            timezone = pytz.timezone(settings.TIME_ZONE)
+
+            # Создаем начало и конец рабочего дня
+            start_time = timezone.localize(datetime.combine(selected_date, datetime.min.time()))
+            start_time = start_time.replace(hour=9, minute=0, second=0)  # 9:00
+            end_time = timezone.localize(datetime.combine(selected_date, datetime.min.time()))
+            end_time = end_time.replace(hour=21, minute=0, second=0)  # 21:00
+
+            # Интервал между слотами (в минутах)
+            interval = 30
+
+            # Генерируем все возможные слоты
+            all_slots = []
+            current_time = start_time
+            while current_time < end_time:
+                all_slots.append({
+                    'time': current_time.strftime('%H:%M'),
+                    'available': True
+                })
+                current_time += timedelta(minutes=interval)
+
+            # Получаем все бронирования на этот день для данного барбера
+            existing_bookings = Booking.objects.filter(
+                service__barber_id=barber_id,
+                date=selected_date,
+                status__in=['pending', 'confirmed']
+            )
+
+            # Помечаем занятые слоты
+            for booking in existing_bookings:
+                booking_time = booking.time.strftime('%H:%M')
+                for slot in all_slots:
+                    if slot['time'] == booking_time:
+                        slot['available'] = False
+                        break
+
+            return Response(all_slots)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Ошибка при получении доступных слотов: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )

@@ -5,6 +5,7 @@ from telegram import Bot, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 import os
 from django.conf import settings
+from datetime import datetime
 
 # Настройка логирования
 logging.basicConfig(
@@ -13,12 +14,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Получаем токен из переменных окружения или из настроек Django
+# Используем токен из переменных окружения или константы
 TOKEN = "7993091176:AAFcjI0NrUl-Sdz_XLAxbVjHzfzdhVAhdOw"
-
-# Словарь для хранения связей между пользователями Telegram и барберами
-# В реальной реализации это должно храниться в базе данных
-telegram_to_barber: Dict[str, int] = {}
 
 # Инициализация бота
 bot = Bot(token=TOKEN)
@@ -61,11 +58,16 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     username = user.username.lower()
 
-    # В реальной реализации нужно проверять в базе данных
+    # Проверяем в базе данных
     from notifications.models import TelegramUser
     try:
         telegram_user = TelegramUser.objects.get(username=username)
         barber_name = f"{telegram_user.barber.first_name} {telegram_user.barber.last_name}"
+
+        # Обновляем chat_id, если он отсутствует
+        if not telegram_user.chat_id:
+            telegram_user.chat_id = update.effective_chat.id
+            telegram_user.save()
 
         await update.message.reply_text(
             f"✅ Вы успешно подключены к системе уведомлений!\n\n"
@@ -125,11 +127,12 @@ async def send_booking_notification(barber_id: int, booking_data: dict) -> bool:
         bool: True если уведомление успешно отправлено, иначе False
     """
     try:
-        # В реальной реализации получаем username из базы данных
+        # Получаем username из базы данных
         from notifications.models import TelegramUser
         try:
             telegram_user = TelegramUser.objects.get(barber_id=barber_id)
             username = telegram_user.username
+            chat_id = telegram_user.chat_id
 
             # Формируем сообщение
             client_name = booking_data.get('client_name', 'Клиент')
@@ -152,7 +155,17 @@ async def send_booking_notification(barber_id: int, booking_data: dict) -> bool:
             message += f"\nДля управления бронированиями перейдите в личный кабинет на сайте или в приложении."
 
             # Отправляем сообщение
-            await bot.send_message(chat_id=f"@{username}", text=message, parse_mode='Markdown')
+            if chat_id:
+                # Если есть chat_id, отправляем напрямую в чат
+                await bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
+            else:
+                # Иначе отправляем через username
+                await bot.send_message(chat_id=f"@{username}", text=message, parse_mode='Markdown')
+
+            # Обновляем последнее уведомление
+            telegram_user.last_notification = datetime.now()
+            telegram_user.save()
+
             return True
 
         except TelegramUser.DoesNotExist:
@@ -170,4 +183,7 @@ async def send_booking_notification(barber_id: int, booking_data: dict) -> bool:
 
 def run_telegram_bot():
     """Запускает бота в отдельном потоке."""
-    asyncio.run(run_bot())
+    try:
+        asyncio.run(run_bot())
+    except Exception as e:
+        logger.error(f"Error running telegram bot: {str(e)}")
