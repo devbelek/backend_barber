@@ -1,4 +1,5 @@
 from rest_framework import viewsets, generics, permissions, status
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth.models import User
@@ -56,18 +57,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class BarberListView(generics.ListAPIView):
     serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Изменено с AllowAny
+    queryset = User.objects.filter(profile__user_type='barber')
 
     def get_queryset(self):
         return User.objects.filter(profile__user_type='barber')
 
 
 class BarberDetailView(generics.RetrieveAPIView):
-    """
-    Получение детальной информации о барбере, включая рейтинг и специализацию
-    """
     serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = User.objects.filter(profile__user_type='barber')
 
     def retrieve(self, request, *args, **kwargs):

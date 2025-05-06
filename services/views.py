@@ -2,6 +2,7 @@ from rest_framework import viewsets, permissions, filters, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from .models import Service
@@ -22,7 +23,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [permissions.IsAuthenticated, IsBarberOrReadOnly]
         else:
-            permission_classes = [permissions.AllowAny]
+            permission_classes = [IsAuthenticatedOrReadOnly]
         return [permission() for permission in permission_classes]
 
     @action(detail=False, methods=['get'])
