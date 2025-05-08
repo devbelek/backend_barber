@@ -18,6 +18,7 @@ class BarberMiniSerializer(serializers.ModelSerializer):
 class ServiceSerializer(serializers.ModelSerializer):
     barber_details = BarberMiniSerializer(source='barber', read_only=True)
     is_favorite = serializers.SerializerMethodField()
+    image = serializers.ImageField(required=False)
 
     class Meta:
         model = Service

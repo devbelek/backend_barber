@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class Service(models.Model):
     barber = models.ForeignKey(User, on_delete=models.CASCADE, related_name='services')
     title = models.CharField(max_length=100)
-    image = models.ImageField(upload_to='services/')
+    image = models.ImageField(upload_to='services/', null=True, blank=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     duration = models.IntegerField(help_text="Продолжительность в минутах", default=30)
     type = models.CharField(max_length=50)

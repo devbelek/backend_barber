@@ -54,3 +54,48 @@ class ServiceViewSet(viewsets.ModelViewSet):
                 {"error": f"Ошибка при получении рекомендаций: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+    def create(self, request, *args, **kwargs):
+        # Для отладки в консоли сервера
+        print("Received data:", request.data)
+        print("Received files:", request.FILES)
+
+        # Проверяем, что есть файл изображения
+        if 'image' not in request.FILES:
+            return Response({"image": "Изображение обязательно для загрузки"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Проверяем тип файла
+        image_file = request.FILES['image']
+        valid_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+
+        # Извлекаем расширение из имени файла
+        file_name = image_file.name
+        extension = '.' + file_name.split('.')[-1].lower() if '.' in file_name else ''
+
+        if extension not in valid_extensions:
+            return Response(
+                {"image": f"Поддерживаются только форматы: {', '.join(valid_extensions)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Проверяем размер файла (не более 5MB)
+        if image_file.size > 5 * 1024 * 1024:
+            return Response(
+                {"image": "Размер файла не должен превышать 5MB"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Проверяем наличие поля barber
+        if 'barber' not in request.data:
+            return Response(
+                {"barber": "Это поле обязательно"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Продолжаем стандартное создание
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

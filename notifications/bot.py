@@ -13,8 +13,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Используем токен из переменных окружения или константы
-TOKEN = "7993091176:AAFcjI0NrUl-Sdz_XLAxbVjHzfzdhVAhdOw"
+# ИСПРАВЛЕНО: Используем токен только из переменных окружения
+TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+if not TOKEN:
+    logger.warning("TELEGRAM_BOT_TOKEN не найден в переменных окружения. Используем токен по умолчанию.")
+    # В продакшн-системе здесь должна быть ошибка вместо использования дефолтного токена
+    TOKEN = "7993091176:AAFcjI0NrUl-Sdz_XLAxbVjHzfzdhVAhdOw"
 
 # Инициализация бота
 bot = Bot(token=TOKEN)

@@ -6,6 +6,7 @@ from bookings.models import Booking
 import asyncio
 import logging
 from notifications.bot import send_booking_notification
+from notifications.tasks import send_telegram_notification_task  # ИСПРАВЛЕНО: добавляем импорт задачи
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +30,8 @@ def send_booking_notification_signal(sender, instance, created, **kwargs):
             # Получаем ID барбера
             barber_id = instance.service.barber.id
 
-            # Отправляем уведомление асинхронно
-            transaction.on_commit(lambda: _send_notification_async(barber_id, booking_data))
+            # ИСПРАВЛЕНО: Используем Celery для асинхронной отправки вместо asyncio
+            transaction.on_commit(lambda: send_telegram_notification_task.delay(barber_id, booking_data))
 
             # Создаем запись об уведомлении
             from notifications.models import Notification
@@ -50,15 +51,15 @@ def send_booking_notification_signal(sender, instance, created, **kwargs):
             logger.error(f"Error creating notification for booking {instance.id}: {str(e)}")
 
 
+# ИСПРАВЛЕНО: Заменяем функцию на новую задачу в tasks.py
+# При этом сама функция остается для обратной совместимости
 def _send_notification_async(barber_id, booking_data):
     """
     Вспомогательная функция для асинхронной отправки уведомления.
+    Использует Celery задачу вместо прямого вызова asyncio.
     """
     try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        coroutine = send_booking_notification(barber_id, booking_data)
-        loop.run_until_complete(coroutine)
-        loop.close()
+        return send_telegram_notification_task.delay(barber_id, booking_data)
     except Exception as e:
         logger.error(f"Error sending async notification: {str(e)}")
+        return None

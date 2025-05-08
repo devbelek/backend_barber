@@ -2,12 +2,14 @@ from rest_framework import viewsets, generics, permissions, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.contrib.auth.models import User
 from .models import Favorite, Review
 from .serializers import FavoriteSerializer, ReviewSerializer
 from users.serializers import UserSerializer
 from services.models import Service
 from django.db.models import Avg, Count
+from rest_framework import generics, permissions
+from django.contrib.auth.models import User
+from users.serializers import UserProfileSerializer
 
 
 class FavoriteViewSet(viewsets.ModelViewSet):
@@ -92,3 +94,11 @@ class BarberDetailView(generics.RetrieveAPIView):
         data['portfolio'] = portfolio
 
         return Response(data)
+
+
+class UserProfileUpdateView(generics.UpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.profile
