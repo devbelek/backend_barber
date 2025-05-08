@@ -1,8 +1,7 @@
-import asyncio
 import logging
 from typing import Dict, Optional
 from telegram import Bot, Update
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters
 import os
 from django.conf import settings
 from datetime import datetime
@@ -21,20 +20,20 @@ TOKEN = "7993091176:AAFcjI0NrUl-Sdz_XLAxbVjHzfzdhVAhdOw"
 bot = Bot(token=TOKEN)
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+def start(update: Update, context: CallbackContext) -> None:
     """Отправляет приветственное сообщение при команде /start."""
     user = update.effective_user
     if not user:
         return
 
-    await update.message.reply_text(
+    update.message.reply_text(
         f"👋 Привет, {user.first_name}! Я бот для уведомлений о бронированиях в BarberHub.\n\n"
         f"Ваш username в Telegram: @{user.username}\n\n"
         f"Укажите этот username в настройках вашего профиля барбера, чтобы получать уведомления о новых бронированиях."
     )
 
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+def help_command(update: Update, context: CallbackContext) -> None:
     """Отправляет сообщение с помощью при команде /help."""
     help_text = (
         "🤖 *Бот для уведомлений BarberHub*\n\n"
@@ -45,14 +44,14 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/status - Проверить статус подключения\n\n"
         "Если у вас возникли проблемы, обратитесь в поддержку через приложение."
     )
-    await update.message.reply_text(help_text, parse_mode='Markdown')
+    update.message.reply_text(help_text, parse_mode='Markdown')
 
 
-async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+def status_command(update: Update, context: CallbackContext) -> None:
     """Проверяет статус подключения пользователя."""
     user = update.effective_user
     if not user or not user.username:
-        await update.message.reply_text(
+        update.message.reply_text(
             "⚠️ У вас не установлен username в Telegram. Пожалуйста, установите его в настройках Telegram.")
         return
 
@@ -69,50 +68,47 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             telegram_user.chat_id = update.effective_chat.id
             telegram_user.save()
 
-        await update.message.reply_text(
+        update.message.reply_text(
             f"✅ Вы успешно подключены к системе уведомлений!\n\n"
             f"Ваш профиль: {barber_name}\n"
             f"Вы будете получать уведомления о новых бронированиях на ваши услуги."
         )
     except TelegramUser.DoesNotExist:
-        await update.message.reply_text(
+        update.message.reply_text(
             f"⚠️ Ваш Telegram аккаунт (@{username}) не связан с аккаунтом барбера в системе.\n\n"
             f"Пожалуйста, добавьте свой username в настройках профиля на сайте или в приложении."
         )
 
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+def handle_message(update: Update, context: CallbackContext) -> None:
     """Обрабатывает все сообщения, которые не являются командами."""
-    await update.message.reply_text(
+    update.message.reply_text(
         "Я бот для уведомлений и не могу отвечать на сообщения. "
         "Используйте /help для получения списка доступных команд."
     )
 
 
-def setup_application():
-    """Настраивает и возвращает приложение бота."""
-    application = Application.builder().token(TOKEN).build()
+def setup_bot():
+    """Настраивает и возвращает updater бота."""
+    updater = Updater(token=TOKEN)
+    dispatcher = updater.dispatcher
 
     # Добавляем обработчики команд
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("status", status_command))
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("help", help_command))
+    dispatcher.add_handler(CommandHandler("status", status_command))
 
     # Обрабатываем сообщения, которые не являются командами
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
-    return application
+    return updater
 
 
-async def run_bot():
+def run_bot():
     """Запускает бота."""
-    application = setup_application()
-    await application.initialize()
-    await application.start()
-    await application.updater.start_polling()
-
-    # Ожидаем бесконечно, чтобы бот не завершился
-    await asyncio.Event().wait()
+    updater = setup_bot()
+    updater.start_polling()
+    updater.idle()
 
 
 async def send_booking_notification(barber_id: int, booking_data: dict) -> bool:
@@ -157,10 +153,10 @@ async def send_booking_notification(barber_id: int, booking_data: dict) -> bool:
             # Отправляем сообщение
             if chat_id:
                 # Если есть chat_id, отправляем напрямую в чат
-                await bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
+                bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
             else:
                 # Иначе отправляем через username
-                await bot.send_message(chat_id=f"@{username}", text=message, parse_mode='Markdown')
+                bot.send_message(chat_id=f"@{username}", text=message, parse_mode='Markdown')
 
             # Обновляем последнее уведомление
             telegram_user.last_notification = datetime.now()
@@ -179,11 +175,3 @@ async def send_booking_notification(barber_id: int, booking_data: dict) -> bool:
     except Exception as e:
         logger.error(f"Error in send_booking_notification: {str(e)}")
         return False
-
-
-def run_telegram_bot():
-    """Запускает бота в отдельном потоке."""
-    try:
-        asyncio.run(run_bot())
-    except Exception as e:
-        logger.error(f"Error running telegram bot: {str(e)}")

@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'services',
     'bookings',
     'profiles',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -129,6 +130,7 @@ CORS_ALLOW_ALL_ORIGINS = True  # Только для разработки!
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'users.authentication.GoogleAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',

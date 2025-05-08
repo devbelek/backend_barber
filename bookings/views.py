@@ -1,5 +1,6 @@
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions, filters, status
 from django_filters.rest_framework import DjangoFilterBackend
+from django.conf import settings
 from .models import Booking
 from .serializers import BookingSerializer
 from .permissions import IsClientOrBarberOwner

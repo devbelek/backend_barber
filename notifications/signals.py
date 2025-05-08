@@ -2,7 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import transaction
 from django.conf import settings
-from .models import Booking
+from bookings.models import Booking
 import asyncio
 import logging
 from notifications.bot import send_booking_notification

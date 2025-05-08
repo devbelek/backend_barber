@@ -55,7 +55,10 @@ def register_google_user(request):
     # Устанавливаем тип пользователя как барбер
     profile.user_type = 'barber'
     if picture:
-        profile.photo = picture
+        # Обработка URL картинки, если нужно сохранить изображение
+        # Этот код может потребовать библиотеки для загрузки изображений
+        # profile.photo = handle_profile_picture(picture)
+        pass
     profile.save()
 
     return Response({
