@@ -181,6 +181,7 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
     "x-google-auth",
+    "x-google-email",
 ]
 CORS_ALLOW_METHODS = [
     'DELETE',

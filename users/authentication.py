@@ -18,6 +18,6 @@ class GoogleAuthentication(BaseAuthentication):
         try:
             # Находим пользователя по email
             user = User.objects.get(email=google_email)
-            return (user, None)  # второй элемент - это токен аутентификации, но для нас он не нужен
+            return (user, 'google')  # Возвращаем пользователя и тип аутентификации
         except User.DoesNotExist:
-            raise exceptions.AuthenticationFailed(_('Пользователь с таким email не найден'))
+            return None  # Вместо выбрасывания исключения, просто возвращаем None
