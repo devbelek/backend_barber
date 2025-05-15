@@ -1,7 +1,13 @@
 from rest_framework import serializers
-from .models import Service
+from .models import Service, ServiceImage
 from users.serializers import UserSerializer
 from django.contrib.auth.models import User
+
+
+class ServiceImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceImage
+        fields = ['id', 'image', 'is_primary', 'order']
 
 
 class BarberMiniSerializer(serializers.ModelSerializer):
@@ -18,15 +24,33 @@ class BarberMiniSerializer(serializers.ModelSerializer):
 class ServiceSerializer(serializers.ModelSerializer):
     barber_details = BarberMiniSerializer(source='barber', read_only=True)
     is_favorite = serializers.SerializerMethodField()
-    image = serializers.ImageField(required=False)
+    images = ServiceImageSerializer(many=True, read_only=True)
+    primary_image = serializers.SerializerMethodField()
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(),
+        write_only=True,
+        required=False
+    )
 
     class Meta:
         model = Service
-        fields = ['id', 'title', 'image', 'price', 'duration', 'type', 'length', 'style',
-                  'location', 'description', 'created_at', 'barber', 'barber_details', 'is_favorite']
+        fields = ['id', 'title', 'price', 'duration', 'type', 'length',
+                  'style', 'location', 'description', 'views', 'created_at',
+                  'barber', 'barber_details', 'is_favorite', 'images',
+                  'primary_image', 'uploaded_images']
         extra_kwargs = {
-            'barber': {'write_only': True}
+            'barber': {'write_only': True},
+            'views': {'read_only': True}
         }
+
+    def get_primary_image(self, obj):
+        primary = obj.images.filter(is_primary=True).first()
+        if primary:
+            return primary.image.url if primary.image else None
+        first_image = obj.images.first()
+        if first_image:
+            return first_image.image.url if first_image.image else None
+        return None
 
     def get_is_favorite(self, obj):
         request = self.context.get('request')
@@ -35,6 +59,17 @@ class ServiceSerializer(serializers.ModelSerializer):
         return False
 
     def create(self, validated_data):
-        # Устанавливаем текущего пользователя как барбера
+        uploaded_images = validated_data.pop('uploaded_images', [])
         validated_data['barber'] = self.context['request'].user
-        return super().create(validated_data)
+        service = super().create(validated_data)
+
+        # Создаем записи для изображений
+        for index, image in enumerate(uploaded_images):
+            ServiceImage.objects.create(
+                service=service,
+                image=image,
+                is_primary=(index == 0),
+                order=index
+            )
+
+        return service

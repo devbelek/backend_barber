@@ -1,5 +1,9 @@
 from django.urls import path
-from .views import UserProfileView, UserProfileUpdateView, register_google_user, google_auth, delete_account
+from .views import (
+    UserProfileView, UserProfileUpdateView,
+    register_google_user, google_auth,
+    delete_account, register_client, login_client
+)
 
 urlpatterns = [
     path('me/', UserProfileView.as_view(), name='user-profile'),
@@ -8,4 +12,7 @@ urlpatterns = [
     path('auth/google/', google_auth, name='google-auth'),
     path('delete-account/', delete_account, name='delete-account'),
 
+    # Новые эндпоинты для клиентов
+    path('register/', register_client, name='register-client'),
+    path('login/', login_client, name='login-client'),
 ]

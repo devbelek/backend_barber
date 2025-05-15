@@ -1,24 +1,97 @@
-from django.contrib.auth.models import User
-from .serializers import UserSerializer, UserProfileSerializer
 
-from .models import UserProfile
-from rest_framework.permissions import AllowAny
+import requests
+from django.contrib.auth.models import User
+from rest_framework import generics, permissions, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 import jwt
-import requests
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+
 import json
-from rest_framework import generics, permissions
-from rest_framework.response import Response
-from rest_framework import status
+
+from .serializers import UserSerializer, UserProfileSerializer
+from .models import UserProfile
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_client(request):
+    """Регистрация обычного клиента"""
+    email = request.data.get('email')
+    password = request.data.get('password')
+    first_name = request.data.get('first_name', '')
+    last_name = request.data.get('last_name', '')
+    phone = request.data.get('phone', '')
+
+    if not email or not password:
+        return Response({"error": "Email и пароль обязательны"}, status=400)
+
+    # Проверяем, существует ли пользователь
+    if User.objects.filter(email=email).exists():
+        return Response({"error": "Пользователь с таким email уже существует"}, status=400)
+
+    # Создаем пользователя
+    username = email.split('@')[0]
+    if User.objects.filter(username=username).exists():
+        username = f"{username}_{User.objects.count()}"
+
+    user = User.objects.create_user(
+        username=username,
+        email=email,
+        password=password,
+        first_name=first_name,
+        last_name=last_name
+    )
+
+    # Создаем профиль клиента
+    profile = UserProfile.objects.create(
+        user=user,
+        user_type='client',
+        phone=phone
+    )
+
+    # Создаем токены
+    refresh = RefreshToken.for_user(user)
+
+    return Response({
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+        'user': UserSerializer(user).data
+    }, status=201)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_client(request):
+    """Авторизация клиента"""
+    email = request.data.get('email')
+    password = request.data.get('password')
+
+    if not email or not password:
+        return Response({"error": "Email и пароль обязательны"}, status=400)
+
+    try:
+        user = User.objects.get(email=email)
+        if not user.check_password(password):
+            return Response({"error": "Неверный пароль"}, status=400)
+
+        # Создаем токены
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': UserSerializer(user).data
+        })
+    except User.DoesNotExist:
+        return Response({"error": "Пользователь не найден"}, status=400)
+
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_account(request):
-    """
-    Удаление аккаунта пользователя
-    """
+    """Удаление аккаунта пользователя"""
     try:
         user = request.user
         user.delete()
@@ -30,13 +103,10 @@ def delete_account(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def google_auth(request):
-    """
-    Аутентификация пользователя через Google.
-
-    Принимает Google ID token, проверяет его через Google API
-    и возвращает JWT токены для авторизованного пользователя.
-    """
+    """Аутентификация пользователя через Google"""
     token = request.data.get('token')
+    user_type = request.data.get('user_type', 'client')  # По умолчанию создаем клиента
+
     if not token:
         return Response({"error": "Token is required"}, status=400)
 
@@ -76,32 +146,17 @@ def google_auth(request):
                 password=None
             )
 
-            # Создаем профиль барбера
-            if not hasattr(user, 'profile'):
-                from profiles.models import UserProfile
-                UserProfile.objects.create(
-                    user=user,
-                    user_type='barber'
-                )
-            else:
-                user.profile.user_type = 'barber'
-                user.profile.save()
+            # Создаем профиль с указанным типом
+            UserProfile.objects.create(
+                user=user,
+                user_type=user_type
+            )
 
         # Создаем JWT токены
         refresh = RefreshToken.for_user(user)
 
         # Формируем ответ с данными пользователя
-        user_data = {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'profile': {
-                'user_type': user.profile.user_type,
-                'photo': user.profile.photo.url if user.profile.photo else None
-            } if hasattr(user, 'profile') else {}
-        }
+        user_data = UserSerializer(user).data
 
         return Response({
             'access': str(refresh.access_token),
