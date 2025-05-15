@@ -19,6 +19,34 @@ class ServiceViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'description']
     ordering_fields = ['price', 'created_at']
 
+    def get_queryset(self):
+        queryset = Service.objects.all()
+
+        # Фильтр по типу
+        types = self.request.query_params.getlist('types[]')
+        if types:
+            queryset = queryset.filter(type__in=types)
+
+        # Фильтр по локации
+        locations = self.request.query_params.getlist('locations[]')
+        if locations:
+            queryset = queryset.filter(location__in=locations)
+
+        # Поиск
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) |
+                Q(description__icontains=search)
+            )
+
+        # Сортировка
+        ordering = self.request.query_params.get('ordering', '-views')
+        if ordering in ['price', '-price', 'created_at', '-created_at', 'views', '-views']:
+            queryset = queryset.order_by(ordering)
+
+        return queryset
+
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [permissions.IsAuthenticated, IsBarberOrReadOnly]
@@ -53,6 +81,50 @@ class ServiceViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": f"Ошибка при получении рекомендаций: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @action(detail=True, methods=['post'])
+    def increment_views(self, request, pk=None):
+        """Увеличивает счетчик просмотров для услуги"""
+        try:
+            service = self.get_object()
+
+            # Проверяем, не просматривал ли пользователь эту услугу недавно
+            ip_address = request.META.get('REMOTE_ADDR')
+            session_key = request.session.session_key
+
+            # Создаем сессию, если её нет
+            if not session_key:
+                request.session.save()
+                session_key = request.session.session_key
+
+            # Проверяем, есть ли уже просмотр от этого пользователя
+            from .models import ServiceView
+            view_exists = ServiceView.objects.filter(
+                service=service,
+                viewer_ip=ip_address,
+                session_key=session_key
+            ).exists()
+
+            if not view_exists:
+                # Создаем запись о просмотре
+                ServiceView.objects.create(
+                    service=service,
+                    viewer_ip=ip_address,
+                    session_key=session_key,
+                    user=request.user if request.user.is_authenticated else None
+                )
+
+                # Увеличиваем счетчик
+                service.views += 1
+                service.save()
+
+            return Response({'views': service.views})
+
+        except Service.DoesNotExist:
+            return Response(
+                {'error': 'Услуга не найдена'},
+                status=status.HTTP_404_NOT_FOUND
             )
 
     def create(self, request, *args, **kwargs):

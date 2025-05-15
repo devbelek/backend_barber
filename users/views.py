@@ -15,6 +15,36 @@ from .models import UserProfile
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_user_type(request):
+    """Изменение типа пользователя с клиента на барбера"""
+    new_type = request.data.get('user_type')
+
+    if new_type not in ['client', 'barber']:
+        return Response({"error": "Неверный тип пользователя"}, status=400)
+
+    try:
+        profile = request.user.profile
+        old_type = profile.user_type
+
+        # Если переключаемся на барбера, проверяем наличие Telegram
+        if new_type == 'barber' and old_type == 'client':
+            telegram = request.data.get('telegram')
+            if not telegram:
+                return Response({"error": "Для барбера необходим Telegram"}, status=400)
+            profile.telegram = telegram
+
+        profile.user_type = new_type
+        profile.save()
+
+        return Response({
+            "message": f"Тип пользователя изменен на {new_type}",
+            "user": UserSerializer(request.user).data
+        })
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def register_client(request):
     """Регистрация обычного клиента"""

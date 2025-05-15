@@ -44,12 +44,19 @@ class ServiceSerializer(serializers.ModelSerializer):
         }
 
     def get_primary_image(self, obj):
+        request = self.context.get('request')
         primary = obj.images.filter(is_primary=True).first()
-        if primary:
-            return primary.image.url if primary.image else None
+        if primary and primary.image:
+            if request:
+                return request.build_absolute_uri(primary.image.url)
+            return primary.image.url
+
         first_image = obj.images.first()
-        if first_image:
-            return first_image.image.url if first_image.image else None
+        if first_image and first_image.image:
+            if request:
+                return request.build_absolute_uri(first_image.image.url)
+            return first_image.image.url
+
         return None
 
     def get_is_favorite(self, obj):
