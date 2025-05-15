@@ -45,7 +45,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response({'status': 'Услуга уже в избранном'}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['post', 'delete'], url_path='toggle')
+    @action(detail=False, methods=['post'], url_path='toggle')
     def toggle(self, request):
         """Переключение избранного для сервиса"""
         service_id = request.data.get('service')
@@ -56,25 +56,26 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         try:
             service = Service.objects.get(id=service_id)
 
-            if request.method == 'POST':
-                favorite, created = Favorite.objects.get_or_create(
+            # Проверяем, существует ли уже запись избранного
+            favorite_exists = Favorite.objects.filter(
+                user=request.user,
+                service=service
+            ).exists()
+
+            if favorite_exists:
+                # Если уже есть в избранном - удаляем
+                Favorite.objects.filter(
+                    user=request.user,
+                    service=service
+                ).delete()
+                return Response({'status': 'removed'}, status=status.HTTP_200_OK)
+            else:
+                # Если нет в избранном - добавляем
+                Favorite.objects.create(
                     user=request.user,
                     service=service
                 )
-                if created:
-                    return Response({'status': 'added'}, status=status.HTTP_201_CREATED)
-                return Response({'status': 'already_exists'}, status=status.HTTP_200_OK)
-
-            elif request.method == 'DELETE':
-                deleted_count, _ = Favorite.objects.filter(
-                    user=request.user,
-                    service_id=service_id
-                ).delete()
-
-                if deleted_count > 0:
-                    return Response({'status': 'removed'}, status=status.HTTP_204_NO_CONTENT)
-                else:
-                    return Response({'error': 'Не найдено в избранном'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'status': 'added'}, status=status.HTTP_201_CREATED)
 
         except Service.DoesNotExist:
             return Response({'error': 'Услуга не найдена'}, status=status.HTTP_404_NOT_FOUND)

@@ -132,38 +132,32 @@ class ServiceViewSet(viewsets.ModelViewSet):
         print("Received data:", request.data)
         print("Received files:", request.FILES)
 
-        # Проверяем, что есть файл изображения
-        if 'image' not in request.FILES:
-            return Response({"image": "Изображение обязательно для загрузки"},
+        # Проверяем, что есть файл изображения (поле изменилось с 'image' на 'uploaded_images')
+        if not request.FILES.getlist('uploaded_images'):
+            return Response({"uploaded_images": "Изображение обязательно для загрузки"},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Проверяем тип файла
-        image_file = request.FILES['image']
+        # Проверяем тип файлов
+        uploaded_images = request.FILES.getlist('uploaded_images')
         valid_extensions = ['.jpg', '.jpeg', '.png', '.gif']
 
-        # Извлекаем расширение из имени файла
-        file_name = image_file.name
-        extension = '.' + file_name.split('.')[-1].lower() if '.' in file_name else ''
+        for image_file in uploaded_images:
+            # Извлекаем расширение из имени файла
+            file_name = image_file.name
+            extension = '.' + file_name.split('.')[-1].lower() if '.' in file_name else ''
 
-        if extension not in valid_extensions:
-            return Response(
-                {"image": f"Поддерживаются только форматы: {', '.join(valid_extensions)}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            if extension not in valid_extensions:
+                return Response(
+                    {"uploaded_images": f"Поддерживаются только форматы: {', '.join(valid_extensions)}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        # Проверяем размер файла (не более 5MB)
-        if image_file.size > 5 * 1024 * 1024:
-            return Response(
-                {"image": "Размер файла не должен превышать 5MB"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Проверяем наличие поля barber
-        # if 'barber' not in request.data:
-        #     return Response(
-        #         {"barber": "Это поле обязательно"},
-        #         status=status.HTTP_400_BAD_REQUEST
-        #     )
+            # Проверяем размер файлов
+            if image_file.size > 5 * 1024 * 1024:
+                return Response(
+                    {"uploaded_images": "Размер файла не должен превышать 5MB"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         # Продолжаем стандартное создание
         serializer = self.get_serializer(data=request.data)
