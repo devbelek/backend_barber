@@ -1,14 +1,30 @@
-from rest_framework import generics, permissions
 from django.contrib.auth.models import User
 from .serializers import UserSerializer, UserProfileSerializer
 
 from .models import UserProfile
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 import jwt
 import requests
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+import json
+from rest_framework import generics, permissions
+from rest_framework.response import Response
+from rest_framework import status
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    """
+    Удаление аккаунта пользователя
+    """
+    try:
+        user = request.user
+        user.delete()
+        return Response({"message": "Аккаунт успешно удален"}, status=status.HTTP_204_NO_CONTENT)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -179,3 +195,48 @@ class UserProfileUpdateView(generics.UpdateAPIView):
 
     def get_object(self):
         return self.request.user.profile
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Делаем PATCH по умолчанию
+        instance = self.get_object()
+
+        # Логирование входящих данных
+        print(f"Content-Type: {request.content_type}")
+        print(f"Request data: {request.data}")
+
+        data = {}
+
+        # Обрабатываем FormData
+        if hasattr(request.data, 'getlist'):  # Проверяем, что это QueryDict (FormData)
+            for key in request.data:
+                value = request.data.get(key)
+
+                # Специальная обработка для JSON полей
+                if key == 'working_days' and value:
+                    try:
+                        data[key] = json.loads(value)
+                    except json.JSONDecodeError:
+                        data[key] = value
+                elif key == 'offers_home_service':
+                    data[key] = value in ['true', 'True', True]
+                elif key == 'latitude' or key == 'longitude':
+                    try:
+                        data[key] = float(value) if value else None
+                    except (ValueError, TypeError):
+                        data[key] = None
+                else:
+                    data[key] = value
+        else:
+            data = request.data
+
+        print(f"Processed data: {data}")
+
+        serializer = self.get_serializer(instance, data=data, partial=partial)
+
+        if not serializer.is_valid():
+            print(f"Validation errors: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        self.perform_update(serializer)
+
+        return Response(serializer.data)

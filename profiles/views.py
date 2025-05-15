@@ -12,6 +12,13 @@ from django.contrib.auth.models import User
 from users.serializers import UserProfileSerializer
 from users.models import UserProfile
 
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import Favorite
+from .serializers import FavoriteSerializer
+from services.models import Service
+
 
 class FavoriteViewSet(viewsets.ModelViewSet):
     serializer_class = FavoriteSerializer
@@ -34,8 +41,56 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         )
 
         if created:
-            return Response({'status': 'Услуга добавлена в избранное'}, status=status.HTTP_201_CREATED)
+            serializer = self.get_serializer(favorite)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response({'status': 'Услуга уже в избранном'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post', 'delete'], url_path='toggle')
+    def toggle(self, request):
+        """Переключение избранного для сервиса"""
+        service_id = request.data.get('service')
+
+        if not service_id:
+            return Response({'error': 'Не указан ID услуги'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            service = Service.objects.get(id=service_id)
+
+            if request.method == 'POST':
+                favorite, created = Favorite.objects.get_or_create(
+                    user=request.user,
+                    service=service
+                )
+                if created:
+                    return Response({'status': 'added'}, status=status.HTTP_201_CREATED)
+                return Response({'status': 'already_exists'}, status=status.HTTP_200_OK)
+
+            elif request.method == 'DELETE':
+                deleted_count, _ = Favorite.objects.filter(
+                    user=request.user,
+                    service_id=service_id
+                ).delete()
+
+                if deleted_count > 0:
+                    return Response({'status': 'removed'}, status=status.HTTP_204_NO_CONTENT)
+                else:
+                    return Response({'error': 'Не найдено в избранном'}, status=status.HTTP_404_NOT_FOUND)
+
+        except Service.DoesNotExist:
+            return Response({'error': 'Услуга не найдена'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"Error in toggle: {str(e)}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Переопределяем destroy для удаления по service_id
+    def destroy(self, request, *args, **kwargs):
+        service_id = kwargs.get('pk')
+        try:
+            favorite = Favorite.objects.get(user=request.user, service_id=service_id)
+            favorite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Favorite.DoesNotExist:
+            return Response({'error': 'Не найдено в избранном'}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['delete'], url_path='remove')
     def remove(self, request, pk=None):
