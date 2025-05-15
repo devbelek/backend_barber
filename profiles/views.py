@@ -10,6 +10,7 @@ from django.db.models import Avg, Count
 from rest_framework import generics, permissions
 from django.contrib.auth.models import User
 from users.serializers import UserProfileSerializer
+from users.models import UserProfile
 
 
 class FavoriteViewSet(viewsets.ModelViewSet):

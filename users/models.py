@@ -17,6 +17,14 @@ class UserProfile(models.Model):
     telegram = models.CharField(max_length=50, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     offers_home_service = models.BooleanField(default=False)
+    bio = models.TextField(blank=True, null=True)
+    working_hours_from = models.TimeField(default='09:00')
+    working_hours_to = models.TimeField(default='18:00')
+    working_days = models.JSONField(default=list, blank=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    location_updated_at = models.DateTimeField(blank=True, null=True)
+    specialization = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.get_user_type_display()}"

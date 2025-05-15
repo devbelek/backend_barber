@@ -13,12 +13,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ИСПРАВЛЕНО: Используем токен только из переменных окружения
 TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 if not TOKEN:
-    logger.warning("TELEGRAM_BOT_TOKEN не найден в переменных окружения. Используем токен по умолчанию.")
-    # В продакшн-системе здесь должна быть ошибка вместо использования дефолтного токена
-    TOKEN = "7993091176:AAFcjI0NrUl-Sdz_XLAxbVjHzfzdhVAhdOw"
+    # Пытаемся получить из settings
+    try:
+        from django.conf import settings
+        TOKEN = settings.TELEGRAM_BOT_TOKEN
+    except:
+        logger.error("TELEGRAM_BOT_TOKEN не найден!")
+        raise ValueError("TELEGRAM_BOT_TOKEN должен быть установлен!")
 
 # Инициализация бота
 bot = Bot(token=TOKEN)

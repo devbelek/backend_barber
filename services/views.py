@@ -87,11 +87,11 @@ class ServiceViewSet(viewsets.ModelViewSet):
             )
 
         # Проверяем наличие поля barber
-        if 'barber' not in request.data:
-            return Response(
-                {"barber": "Это поле обязательно"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # if 'barber' not in request.data:
+        #     return Response(
+        #         {"barber": "Это поле обязательно"},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
 
         # Продолжаем стандартное создание
         serializer = self.get_serializer(data=request.data)

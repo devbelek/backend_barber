@@ -6,7 +6,7 @@ from bookings.models import Booking
 import asyncio
 import logging
 from notifications.bot import send_booking_notification
-from notifications.tasks import send_telegram_notification_task  # ИСПРАВЛЕНО: добавляем импорт задачи
+from notifications.tasks import send_telegram_notification_task
 
 logger = logging.getLogger(__name__)
 
