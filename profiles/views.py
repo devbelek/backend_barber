@@ -141,12 +141,19 @@ class BarberDetailView(generics.RetrieveAPIView):
         data['avg_rating'] = round(avg_rating, 1)
         data['review_count'] = review_count
 
-        # Добавляем портфолио (услуги с фото)
+        # Добавляем портфолио (основные изображения услуг)
         portfolio = []
         services = Service.objects.filter(barber=instance)
         for service in services:
-            if service.image:
-                portfolio.append(service.image.url)
+            # Пытаемся получить основное изображение
+            primary_image = service.images.filter(is_primary=True).first()
+            if primary_image:
+                portfolio.append(request.build_absolute_uri(primary_image.image.url))
+            else:
+                # Если основного нет, берём первое изображение
+                first_image = service.images.first()
+                if first_image:
+                    portfolio.append(request.build_absolute_uri(first_image.image.url))
 
         data['portfolio'] = portfolio
 
