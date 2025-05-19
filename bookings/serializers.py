@@ -11,7 +11,7 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = ['id', 'client', 'service', 'service_details', 'date', 'time', 'status', 'notes', 'created_at',
-                  'client_name', 'client_phone']
+                  'client_name', 'client_phone', 'client_name_contact', 'client_phone_contact']
         extra_kwargs = {
             'client': {'read_only': True},
             'service': {'write_only': True}
@@ -23,6 +23,10 @@ class BookingSerializer(serializers.ModelSerializer):
         # Извлекаем client_name и client_phone, если они предоставлены
         client_name = validated_data.pop('client_name', None)
         client_phone = validated_data.pop('client_phone', None)
+
+        # Сохраняем контактную информацию независимо от способа аутентификации
+        validated_data['client_name_contact'] = client_name
+        validated_data['client_phone_contact'] = client_phone
 
         # Если пользователь авторизован, используем его аккаунт
         if request and request.user.is_authenticated:
