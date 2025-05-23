@@ -4,8 +4,9 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from django.db.models import Q
 
-from .models import Service
+from .models import Service, ServiceImage
 from .serializers import ServiceSerializer
 from .permissions import IsBarberOrReadOnly
 
@@ -17,7 +18,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['type', 'length', 'style', 'location', 'barber']
     search_fields = ['title', 'description']
-    ordering_fields = ['price', 'created_at']
+    ordering_fields = ['price', 'created_at', 'views']
 
     def get_queryset(self):
         queryset = Service.objects.all()
@@ -56,25 +57,19 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def recommendations(self, request):
-        """
-        Возвращает рекомендации услуг на основе местоположения пользователя.
-        """
+        """Возвращает рекомендации услуг на основе местоположения пользователя."""
         try:
             latitude = request.query_params.get('latitude')
             longitude = request.query_params.get('longitude')
 
             if not latitude or not longitude:
-                return Response(
-                    {"error": "Необходимо указать параметры 'latitude' и 'longitude'"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                # Если координаты не указаны, возвращаем популярные услуги
+                services = Service.objects.all().order_by('-views')[:10]
+            else:
+                # Фильтруем по городу
+                services = Service.objects.filter(location__icontains='Бишкек')[:10]
 
-            # Получаем все услуги с ограничением по городу Бишкек
-            services = Service.objects.filter(location__icontains='Бишкек')[:10]
-
-            # Сериализуем данные
             serializer = self.get_serializer(services, many=True)
-
             return Response(serializer.data)
 
         except Exception as e:
@@ -89,38 +84,11 @@ class ServiceViewSet(viewsets.ModelViewSet):
         try:
             service = self.get_object()
 
-            # Проверяем, не просматривал ли пользователь эту услугу недавно
-            ip_address = request.META.get('REMOTE_ADDR')
-            session_key = request.session.session_key
-
-            # Создаем сессию, если её нет
-            if not session_key:
-                request.session.save()
-                session_key = request.session.session_key
-
-            # Проверяем, есть ли уже просмотр от этого пользователя
-            from .models import ServiceView
-            view_exists = ServiceView.objects.filter(
-                service=service,
-                viewer_ip=ip_address,
-                session_key=session_key
-            ).exists()
-
-            if not view_exists:
-                # Создаем запись о просмотре
-                ServiceView.objects.create(
-                    service=service,
-                    viewer_ip=ip_address,
-                    session_key=session_key,
-                    user=request.user if request.user.is_authenticated else None
-                )
-
-                # Увеличиваем счетчик
-                service.views += 1
-                service.save()
+            # Увеличиваем счетчик без проверки IP для упрощения
+            service.views += 1
+            service.save()
 
             return Response({'views': service.views})
-
         except Service.DoesNotExist:
             return Response(
                 {'error': 'Услуга не найдена'},
@@ -128,40 +96,53 @@ class ServiceViewSet(viewsets.ModelViewSet):
             )
 
     def create(self, request, *args, **kwargs):
-        # Для отладки в консоли сервера
-        print("Received data:", request.data)
-        print("Received files:", request.FILES)
-
-        # Проверяем, что есть файл изображения (поле изменилось с 'image' на 'uploaded_images')
+        """Создание новой услуги с изображениями"""
+        # Проверяем наличие изображений
         if not request.FILES.getlist('uploaded_images'):
-            return Response({"uploaded_images": "Изображение обязательно для загрузки"},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"uploaded_images": ["Необходимо загрузить хотя бы одно изображение"]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Проверяем тип файлов
-        uploaded_images = request.FILES.getlist('uploaded_images')
-        valid_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+        # Валидация типов файлов
+        valid_extensions = {'.jpg', '.jpeg', '.png', '.gif'}
 
-        for image_file in uploaded_images:
-            # Извлекаем расширение из имени файла
-            file_name = image_file.name
-            extension = '.' + file_name.split('.')[-1].lower() if '.' in file_name else ''
+        for image_file in request.FILES.getlist('uploaded_images'):
+            file_ext = os.path.splitext(image_file.name)[1].lower()
 
-            if extension not in valid_extensions:
+            if file_ext not in valid_extensions:
                 return Response(
-                    {"uploaded_images": f"Поддерживаются только форматы: {', '.join(valid_extensions)}"},
+                    {"uploaded_images": [f"Поддерживаются только форматы: {', '.join(valid_extensions)}"]},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Проверяем размер файлов
+            # Проверка размера (5MB)
             if image_file.size > 5 * 1024 * 1024:
                 return Response(
-                    {"uploaded_images": "Размер файла не должен превышать 5MB"},
+                    {"uploaded_images": ["Размер файла не должен превышать 5MB"]},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-        # Продолжаем стандартное создание
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        """Обновление услуги с изображениями"""
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        # Обработка существующих изображений
+        existing_images = request.data.getlist('existing_images', [])
+
+        # Удаляем изображения, которые не в списке существующих
+        if existing_images:
+            instance.images.exclude(id__in=existing_images).delete()
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)

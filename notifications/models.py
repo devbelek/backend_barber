@@ -118,3 +118,15 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.get_type_display()} - {self.recipient.username}"
+
+
+class TelegramAccount(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='telegram_account_data')
+    username = models.CharField(max_length=100, unique=True)
+    chat_id = models.BigIntegerField(null=True, blank=True)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"@{self.username} - {self.user.username}"
