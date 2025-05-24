@@ -9,25 +9,119 @@ class UserProfile(models.Model):
         ('client', 'Клиент'),
         ('barber', 'Барбер'),
     )
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='client')
-    phone = models.CharField(max_length=20, blank=True, null=True)
-    photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
-    whatsapp = models.CharField(max_length=20, blank=True, null=True)
-    telegram = models.CharField(max_length=50, blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
-    offers_home_service = models.BooleanField(default=False)
-    bio = models.TextField(blank=True, null=True)
-    working_hours_from = models.TimeField(default='09:00')
-    working_hours_to = models.TimeField(default='18:00')
-    working_days = models.JSONField(default=list, blank=True)
-    latitude = models.FloatField(blank=True, null=True)
-    longitude = models.FloatField(blank=True, null=True)
-    location_updated_at = models.DateTimeField(blank=True, null=True)
-    specialization = models.JSONField(default=list, blank=True)
+
+    WORKING_DAYS_CHOICES = [
+        ('Пн', 'Понедельник'),
+        ('Вт', 'Вторник'),
+        ('Ср', 'Среда'),
+        ('Чт', 'Четверг'),
+        ('Пт', 'Пятница'),
+        ('Сб', 'Суббота'),
+        ('Вс', 'Воскресенье'),
+    ]
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile',
+        verbose_name='Пользователь'
+    )
+    user_type = models.CharField(
+        max_length=10,
+        choices=USER_TYPE_CHOICES,
+        default='client',
+        verbose_name='Тип пользователя'
+    )
+    phone = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name='Телефон'
+    )
+    photo = models.ImageField(
+        upload_to='profile_photos/',
+        blank=True,
+        null=True,
+        verbose_name='Фото профиля'
+    )
+    whatsapp = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name='WhatsApp',
+        help_text='Номер WhatsApp для связи с клиентами'
+    )
+    telegram = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='Telegram',
+        help_text='Username в Telegram без @'
+    )
+    address = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Адрес'
+    )
+    offers_home_service = models.BooleanField(
+        default=False,
+        verbose_name='Выезд на дом',
+        help_text='Предлагает ли барбер услуги с выездом на дом'
+    )
+    bio = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='О себе'
+    )
+    working_hours_from = models.TimeField(
+        default='09:00',
+        verbose_name='Начало работы'
+    )
+    working_hours_to = models.TimeField(
+        default='18:00',
+        verbose_name='Конец работы'
+    )
+    working_days = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name='Рабочие дни'
+    )
+    latitude = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name='Широта'
+    )
+    longitude = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name='Долгота'
+    )
+    location_updated_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name='Местоположение обновлено'
+    )
+    specialization = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name='Специализация'
+    )
+
+    class Meta:
+        verbose_name = 'Профиль пользователя'
+        verbose_name_plural = 'Профили пользователей'
+        ordering = ['-user__date_joined']
 
     def __str__(self):
-        return f"{self.user.username} - {self.get_user_type_display()}"
+        return f"{self.user.get_full_name() or self.user.username} - {self.get_user_type_display()}"
+
+    @property
+    def full_name(self):
+        return self.user.get_full_name() or self.user.username
+
+    @property
+    def is_barber(self):
+        return self.user_type == 'barber'
 
 
 @receiver(post_save, sender=User)

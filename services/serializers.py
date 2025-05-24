@@ -1,5 +1,6 @@
 import os
 from rest_framework import serializers
+from django.db import models
 from .models import Service, ServiceImage
 from users.serializers import UserSerializer
 from django.contrib.auth.models import User

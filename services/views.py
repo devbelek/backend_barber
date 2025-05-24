@@ -1,10 +1,13 @@
+import os
 from rest_framework import viewsets, permissions, filters, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Q, Avg, Count
+# from django.contrib.gis.db.models.functions import Distance
+# from django.contrib.gis.geos import Point
 
 from .models import Service, ServiceImage
 from .serializers import ServiceSerializer
@@ -62,12 +65,27 @@ class ServiceViewSet(viewsets.ModelViewSet):
             latitude = request.query_params.get('latitude')
             longitude = request.query_params.get('longitude')
 
-            if not latitude or not longitude:
+            if latitude and longitude:
+                # Получаем услуги с расчетом расстояния
+                user_location = Point(float(longitude), float(latitude), srid=4326)
+
+                # Аннотируем услуги с расстоянием от пользователя
+                services = Service.objects.filter(
+                    barber__profile__latitude__isnull=False,
+                    barber__profile__longitude__isnull=False
+                ).annotate(
+                    distance=Distance(
+                        Point(
+                            'barber__profile__longitude',
+                            'barber__profile__latitude',
+                            srid=4326
+                        ),
+                        user_location
+                    )
+                ).order_by('distance')[:10]
+            else:
                 # Если координаты не указаны, возвращаем популярные услуги
                 services = Service.objects.all().order_by('-views')[:10]
-            else:
-                # Фильтруем по городу
-                services = Service.objects.filter(location__icontains='Бишкек')[:10]
 
             serializer = self.get_serializer(services, many=True)
             return Response(serializer.data)
@@ -94,6 +112,72 @@ class ServiceViewSet(viewsets.ModelViewSet):
                 {'error': 'Услуга не найдена'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+    @action(detail=False, methods=['get'])
+    def nearby(self, request):
+        """Получить услуги поблизости с расчетом расстояния на бэкенде"""
+        latitude = request.query_params.get('latitude')
+        longitude = request.query_params.get('longitude')
+        radius = request.query_params.get('radius', 5)  # км
+
+        if not latitude or not longitude:
+            return Response(
+                {"error": "Требуются параметры latitude и longitude"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            lat = float(latitude)
+            lon = float(longitude)
+            radius = float(radius)
+
+            # Здесь можно использовать PostGIS для точного расчета
+            # Для SQLite используем упрощенную формулу
+            services = Service.objects.filter(
+                barber__profile__latitude__isnull=False,
+                barber__profile__longitude__isnull=False
+            ).select_related('barber__profile')
+
+            # Добавляем расстояние к каждой услуге
+            nearby_services = []
+            for service in services:
+                barber_lat = service.barber.profile.latitude
+                barber_lon = service.barber.profile.longitude
+
+                # Простая формула расчета расстояния
+                distance = self._calculate_distance(lat, lon, barber_lat, barber_lon)
+
+                if distance <= radius:
+                    service_data = self.get_serializer(service).data
+                    service_data['distance'] = round(distance, 1)
+                    nearby_services.append(service_data)
+
+            # Сортируем по расстоянию
+            nearby_services.sort(key=lambda x: x['distance'])
+
+            return Response(nearby_services)
+
+        except ValueError:
+            return Response(
+                {"error": "Неверный формат координат"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def _calculate_distance(self, lat1, lon1, lat2, lon2):
+        """Расчет расстояния между двумя точками в километрах"""
+        from math import sin, cos, sqrt, atan2, radians
+
+        R = 6371  # Радиус Земли в километрах
+
+        lat1_rad = radians(lat1)
+        lat2_rad = radians(lat2)
+        delta_lat = radians(lat2 - lat1)
+        delta_lon = radians(lon2 - lon1)
+
+        a = sin(delta_lat / 2) ** 2 + cos(lat1_rad) * cos(lat2_rad) * sin(delta_lon / 2) ** 2
+        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+        return R * c
 
     def create(self, request, *args, **kwargs):
         """Создание новой услуги с изображениями"""

@@ -5,19 +5,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key-here')
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
+    # Django Unfold должен быть перед django.contrib.admin
+    "unfold",
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
+    "unfold.contrib.inlines",
+    "unfold.contrib.import_export",
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -30,6 +34,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'djoser',
     'django_filters',
+    'import_export',
 
     # Наши приложения
     'users',
@@ -67,6 +72,122 @@ TEMPLATES = [
         },
     },
 ]
+
+# Django Unfold настройки
+UNFOLD = {
+    "SITE_TITLE": "TARAK Admin",
+    "SITE_HEADER": "TARAK",
+    "SITE_URL": "/",
+    "SITE_ICON": {
+        "light": "/static/icon-light.svg",
+        "dark": "/static/icon-dark.svg",
+    },
+    "SITE_LOGO": {
+        "light": "/static/logo-light.svg",
+        "dark": "/static/logo-dark.svg",
+    },
+    "SITE_SYMBOL": "barber",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "ENVIRONMENT": "development",
+    "DASHBOARD_CALLBACK": "barberhub.admin.dashboard_callback",
+    "THEME": "dark",
+    "COLORS": {
+        "primary": {
+            "50": "250 245 255",
+            "100": "243 232 255",
+            "200": "233 213 255",
+            "300": "216 180 254",
+            "400": "192 132 252",
+            "500": "154 15 52",  # Основной цвет #9A0F34
+            "600": "123 12 41",  # #7b0c29
+            "700": "109 40 217",
+            "800": "91 33 182",
+            "900": "76 29 149",
+            "950": "46 16 101",
+        },
+    },
+    "EXTENSIONS": {
+        "modeltranslation": {
+            "flags": {
+                "en": "🇬🇧",
+                "ru": "🇷🇺",
+                "kg": "🇰🇬",
+            },
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": "Навигация",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Главная",
+                        "icon": "home",
+                        "link": "/admin/",
+                        "badge": "barberhub.admin.badge_callback",
+                    },
+                    {
+                        "title": "Пользователи",
+                        "icon": "people",
+                        "link": "/admin/auth/user/",
+                    },
+                ],
+            },
+            {
+                "title": "Услуги",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Все услуги",
+                        "icon": "cut",
+                        "link": "/admin/services/service/",
+                    },
+                    {
+                        "title": "Изображения услуг",
+                        "icon": "image",
+                        "link": "/admin/services/serviceimage/",
+                    },
+                ],
+            },
+            {
+                "title": "Бронирования",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Все бронирования",
+                        "icon": "calendar_today",
+                        "link": "/admin/bookings/booking/",
+                    },
+                ],
+            },
+            {
+                "title": "Профили",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Профили пользователей",
+                        "icon": "account_circle",
+                        "link": "/admin/users/userprofile/",
+                    },
+                    {
+                        "title": "Избранное",
+                        "icon": "favorite",
+                        "link": "/admin/profiles/favorite/",
+                    },
+                    {
+                        "title": "Отзывы",
+                        "icon": "rate_review",
+                        "link": "/admin/profiles/review/",
+                    },
+                ],
+            },
+        ],
+    },
+}
 
 WSGI_APPLICATION = 'barberhub.wsgi.application'
 
@@ -107,14 +228,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-LANGUAGE_CODE = 'ru-ru'
+LANGUAGE_CODE = 'ru'
 TIME_ZONE = 'Asia/Bishkek'
 USE_I18N = True
 USE_TZ = True
+USE_L10N = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 # Media files
 MEDIA_URL = '/media/'
@@ -123,7 +248,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings - ИСПРАВЛЕНО
+# CORS settings
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS',
                                       'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173').split(
     ',')
@@ -152,7 +277,7 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-# Rest Framework settings - ИСПРАВЛЕНО: Убран throttling
+# Rest Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -165,22 +290,19 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 20,  # Увеличен размер страницы
+    'PAGE_SIZE': 20,
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ) if not DEBUG else (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
-    # УДАЛЕН THROTTLING - основная причина 429 ошибок
 }
 
 # JWT settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=int(os.environ.get('JWT_ACCESS_TOKEN_LIFETIME_DAYS', 7))),
-    # Увеличено до 7 дней
     'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.environ.get('JWT_REFRESH_TOKEN_LIFETIME_DAYS', 30))),
-    # Увеличено до 30 дней
     'AUTH_HEADER_TYPES': ('Bearer',),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -200,7 +322,7 @@ DJOSER = {
     },
 }
 
-# Session settings - для предотвращения частых логаутов
+# Session settings
 SESSION_COOKIE_AGE = 86400 * 7  # 7 дней
 SESSION_SAVE_EVERY_REQUEST = True
 
@@ -216,8 +338,6 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     X_FRAME_OPTIONS = 'DENY'
 
-    # Настройки статических файлов для продакшена
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
 LOGGING = {
@@ -237,5 +357,5 @@ LOGGING = {
     },
 }
 
-# Telegram settings - БЕЗОПАСНОЕ получение токена
+# Telegram settings
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
