@@ -6,8 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from django.db.models import Q, Avg, Count
-# from django.contrib.gis.db.models.functions import Distance
-# from django.contrib.gis.geos import Point
 
 from .models import Service, ServiceImage
 from .serializers import ServiceSerializer
@@ -19,34 +17,94 @@ class ServiceViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['type', 'length', 'style', 'location', 'barber']
-    search_fields = ['title', 'description']
+    search_fields = ['title', 'description', 'barber__first_name', 'barber__last_name']
     ordering_fields = ['price', 'created_at', 'views']
 
     def get_queryset(self):
         queryset = Service.objects.all()
 
-        # Фильтр по типу
+        # Фильтр по типам (массив)
         types = self.request.query_params.getlist('types[]')
+        if not types:  # Если не передан как массив, пробуем получить как строку
+            types_str = self.request.query_params.get('types')
+            if types_str:
+                types = types_str.split(',')
+
         if types:
-            queryset = queryset.filter(type__in=types)
+            # Преобразуем значения фронтенда в значения бэкенда
+            type_mapping = {
+                'Классическая': 'classic',
+                'Фейд': 'fade',
+                'Андеркат': 'undercut',
+                'Кроп': 'crop',
+                'Помпадур': 'pompadour',
+                'Текстурная': 'textured'
+            }
+            backend_types = [type_mapping.get(t, t) for t in types]
+            queryset = queryset.filter(type__in=backend_types)
+
+        # Фильтр по длине волос (массив)
+        lengths = self.request.query_params.getlist('lengths[]')
+        if not lengths:
+            lengths_str = self.request.query_params.get('lengths')
+            if lengths_str:
+                lengths = lengths_str.split(',')
+
+        if lengths:
+            length_mapping = {
+                'Короткие': 'short',
+                'Средние': 'medium',
+                'Длинные': 'long'
+            }
+            backend_lengths = [length_mapping.get(l, l) for l in lengths]
+            queryset = queryset.filter(length__in=backend_lengths)
+
+        # Фильтр по стилям (массив)
+        styles = self.request.query_params.getlist('styles[]')
+        if not styles:
+            styles_str = self.request.query_params.get('styles')
+            if styles_str:
+                styles = styles_str.split(',')
+
+        if styles:
+            style_mapping = {
+                'Деловой': 'business',
+                'Повседневный': 'casual',
+                'Трендовый': 'trendy',
+                'Винтажный': 'vintage',
+                'Современный': 'modern'
+            }
+            backend_styles = [style_mapping.get(s, s) for s in styles]
+            queryset = queryset.filter(style__in=backend_styles)
 
         # Фильтр по локации
         locations = self.request.query_params.getlist('locations[]')
         if locations:
-            queryset = queryset.filter(location__in=locations)
+            location_query = Q()
+            for location in locations:
+                location_query |= Q(location__icontains=location)
+            queryset = queryset.filter(location_query)
+
+        # Фильтр по барберу
+        barber = self.request.query_params.get('barber')
+        if barber:
+            queryset = queryset.filter(barber_id=barber)
 
         # Поиск
         search = self.request.query_params.get('search')
         if search:
             queryset = queryset.filter(
                 Q(title__icontains=search) |
-                Q(description__icontains=search)
+                Q(description__icontains=search) |
+                Q(barber__first_name__icontains=search) |
+                Q(barber__last_name__icontains=search) |
+                Q(location__icontains=search)
             )
 
         # Сортировка
         ordering = self.request.query_params.get('ordering', '-views')
-        if ordering in ['price', '-price', 'created_at', '-created_at', 'views', '-views']:
+        valid_orderings = ['price', '-price', 'created_at', '-created_at', 'views', '-views']
+        if ordering in valid_orderings:
             queryset = queryset.order_by(ordering)
 
         return queryset
@@ -58,54 +116,13 @@ class ServiceViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticatedOrReadOnly]
         return [permission() for permission in permission_classes]
 
-    @action(detail=False, methods=['get'])
-    def recommendations(self, request):
-        """Возвращает рекомендации услуг на основе местоположения пользователя."""
-        try:
-            latitude = request.query_params.get('latitude')
-            longitude = request.query_params.get('longitude')
-
-            if latitude and longitude:
-                # Получаем услуги с расчетом расстояния
-                user_location = Point(float(longitude), float(latitude), srid=4326)
-
-                # Аннотируем услуги с расстоянием от пользователя
-                services = Service.objects.filter(
-                    barber__profile__latitude__isnull=False,
-                    barber__profile__longitude__isnull=False
-                ).annotate(
-                    distance=Distance(
-                        Point(
-                            'barber__profile__longitude',
-                            'barber__profile__latitude',
-                            srid=4326
-                        ),
-                        user_location
-                    )
-                ).order_by('distance')[:10]
-            else:
-                # Если координаты не указаны, возвращаем популярные услуги
-                services = Service.objects.all().order_by('-views')[:10]
-
-            serializer = self.get_serializer(services, many=True)
-            return Response(serializer.data)
-
-        except Exception as e:
-            return Response(
-                {"error": f"Ошибка при получении рекомендаций: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
     @action(detail=True, methods=['post'])
     def increment_views(self, request, pk=None):
         """Увеличивает счетчик просмотров для услуги"""
         try:
             service = self.get_object()
-
-            # Увеличиваем счетчик без проверки IP для упрощения
             service.views += 1
             service.save()
-
             return Response({'views': service.views})
         except Service.DoesNotExist:
             return Response(
@@ -115,10 +132,10 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def nearby(self, request):
-        """Получить услуги поблизости с расчетом расстояния на бэкенде"""
+        """Получить услуги поблизости"""
         latitude = request.query_params.get('latitude')
         longitude = request.query_params.get('longitude')
-        radius = request.query_params.get('radius', 5)  # км
+        radius = request.query_params.get('radius', 5)
 
         if not latitude or not longitude:
             return Response(
@@ -131,20 +148,23 @@ class ServiceViewSet(viewsets.ModelViewSet):
             lon = float(longitude)
             radius = float(radius)
 
-            # Здесь можно использовать PostGIS для точного расчета
-            # Для SQLite используем упрощенную формулу
+            # Валидация координат
+            if not (-90 <= lat <= 90) or not (-180 <= lon <= 180):
+                return Response(
+                    {"error": "Неверные координаты"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             services = Service.objects.filter(
                 barber__profile__latitude__isnull=False,
                 barber__profile__longitude__isnull=False
             ).select_related('barber__profile')
 
-            # Добавляем расстояние к каждой услуге
             nearby_services = []
             for service in services:
                 barber_lat = service.barber.profile.latitude
                 barber_lon = service.barber.profile.longitude
 
-                # Простая формула расчета расстояния
                 distance = self._calculate_distance(lat, lon, barber_lat, barber_lon)
 
                 if distance <= radius:
@@ -152,9 +172,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
                     service_data['distance'] = round(distance, 1)
                     nearby_services.append(service_data)
 
-            # Сортируем по расстоянию
             nearby_services.sort(key=lambda x: x['distance'])
-
             return Response(nearby_services)
 
         except ValueError:
