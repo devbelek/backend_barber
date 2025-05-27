@@ -1,7 +1,7 @@
 import os
 from rest_framework import serializers
 from django.db import models
-from .models import Service, ServiceImage
+from .models import Service, ServiceImage, Banner
 from users.serializers import UserSerializer
 from django.contrib.auth.models import User
 
@@ -113,3 +113,9 @@ class ServiceSerializer(serializers.ModelSerializer):
                 )
 
         return instance
+
+
+class BannerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Banner
+        fields = ['id', 'desktop_image', 'mobile_image']

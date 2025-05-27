@@ -129,7 +129,6 @@ class ServiceImage(models.Model):
         return f"Изображение для {self.service.title}"
 
     def save(self, *args, **kwargs):
-        # Если это основное изображение, сбросить флаг у других
         if self.is_primary:
             ServiceImage.objects.filter(
                 service=self.service,
@@ -174,3 +173,13 @@ class ServiceView(models.Model):
 
     def __str__(self):
         return f"Просмотр {self.service.title} от {self.viewer_ip}"
+
+
+class Banner(models.Model):
+    desktop_image = models.ImageField(upload_to='banners/desktop/')
+    mobile_image = models.ImageField(upload_to='banners/mobile/')
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Banner {self.id}"
+

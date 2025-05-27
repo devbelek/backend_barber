@@ -6,9 +6,10 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from django.db.models import Q, Avg, Count
+from rest_framework.views import APIView
 
-from .models import Service, ServiceImage
-from .serializers import ServiceSerializer
+from .models import Service, ServiceImage, Banner
+from .serializers import ServiceSerializer, BannerSerializer
 from .permissions import IsBarberOrReadOnly
 
 
@@ -19,6 +20,8 @@ class ServiceViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description', 'barber__first_name', 'barber__last_name']
     ordering_fields = ['price', 'created_at', 'views']
+    lookup_field = 'pk'
+    lookup_value_regex = '[0-9]+'
 
     def get_queryset(self):
         queryset = Service.objects.all()
@@ -247,4 +250,11 @@ class ServiceViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
+        return Response(serializer.data)
+
+
+class ActiveBannerAPIView(APIView):
+    def get(self, request):
+        banners = Banner.objects.filter(is_active=True)
+        serializer = BannerSerializer(banners, many=True, context={"request": request})
         return Response(serializer.data)

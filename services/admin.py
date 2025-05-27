@@ -3,12 +3,14 @@ from django.utils.html import format_html
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import display
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
-from .models import Service, ServiceImage, ServiceView
+from .models import Service, ServiceImage, ServiceView, Banner
+
 
 class ServiceImageInline(TabularInline):
     model = ServiceImage
     extra = 1
     fields = ['image', 'is_primary', 'order']
+
 
 @admin.register(Service)
 class ServiceAdmin(ModelAdmin):
@@ -67,3 +69,16 @@ class ServiceAdmin(ModelAdmin):
             '#22c55e' if obj.views > 100 else '#f59e0b' if obj.views > 50 else '#6b7280',
             obj.views
         )
+
+
+@admin.register(Banner)
+class BannerAdmin(admin.ModelAdmin):
+    list_display = ('is_active', 'desktop_image', 'mobile_image')
+    list_filter = ('is_active',)
+    readonly_fields = ('image_preview',)
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 100px;"/>', obj.image.url)
+        return ""
+    image_preview.short_description = 'Preview'
