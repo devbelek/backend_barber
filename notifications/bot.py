@@ -62,6 +62,7 @@ def send_booking_notification(barber_id: int, booking_data: dict) -> bool:
 
         # Формируем сообщение
         client_name = booking_data.get('client_name', 'Клиент')
+        client_phone = booking_data.get('client_phone', '')
         service_title = booking_data.get('service_title', 'Услуга')
         date = booking_data.get('date', 'Дата не указана')
         time = booking_data.get('time', 'Время не указано')
@@ -70,6 +71,12 @@ def send_booking_notification(barber_id: int, booking_data: dict) -> bool:
         message = (
             f"🔔 *Новое бронирование!*\n\n"
             f"👤 Клиент: {client_name}\n"
+        )
+
+        if client_phone:
+            message += f"📱 Телефон: {client_phone}\n"
+
+        message += (
             f"✂️ Услуга: {service_title}\n"
             f"📅 Дата: {date}\n"
             f"🕒 Время: {time}\n"
@@ -78,7 +85,7 @@ def send_booking_notification(barber_id: int, booking_data: dict) -> bool:
         if notes:
             message += f"\n📝 Примечания: {notes}\n"
 
-        message += f"\nДля управления бронированиями перейдите в личный кабинет."
+        message += f"\n✅ Для управления бронированиями перейдите в личный кабинет."
 
         # Определяем chat_id
         chat_id = telegram_user.chat_id or f"@{telegram_user.username}"
@@ -122,31 +129,9 @@ def send_test_message(username: str, title: str, message: str) -> bool:
 
         return success
 
-    except Exception as e:
-        logger.error(f"Ошибка отправки тестового сообщения: {str(e)}")
+    except TelegramUser.DoesNotExist:
+        logger.error(f"TelegramUser с username {username} не найден")
         return False
-
-
-def send_test_message(username: str, title: str, message: str) -> bool:
-    """
-    Отправка тестового сообщения
-    """
-    try:
-        from notifications.models import TelegramUser
-
-        telegram_user = TelegramUser.objects.get(username=username)
-        formatted_message = f"*{title}*\n\n{message}"
-        chat_id = telegram_user.chat_id or f"@{username}"
-
-        success = send_telegram_message(chat_id, formatted_message)
-
-        if success:
-            from django.utils import timezone
-            telegram_user.last_notification = timezone.now()
-            telegram_user.save()
-
-        return success
-
     except Exception as e:
         logger.error(f"Ошибка отправки тестового сообщения: {str(e)}")
         return False

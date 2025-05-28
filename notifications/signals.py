@@ -1,6 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from bookings.models import Booking
+from notifications.models import Notification
+from notifications.bot import send_booking_notification
 import logging
 import threading
 
@@ -12,7 +14,6 @@ def send_notification_background(barber_id, booking_data):
     Фоновая отправка уведомления (в отдельном потоке)
     """
     try:
-        from notifications.bot import send_booking_notification
         success = send_booking_notification(barber_id, booking_data)
 
         if success:
@@ -32,8 +33,15 @@ def send_booking_notification_signal(sender, instance, created, **kwargs):
     if created:  # Только для новых бронирований
         try:
             # Подготавливаем данные для уведомления
+            client_name = instance.client_name_contact or (
+                f"{instance.client.first_name} {instance.client.last_name}".strip()
+                if instance.client.first_name else instance.client.username
+            )
+
             booking_data = {
-                'client_name': f"{instance.client.first_name} {instance.client.last_name}".strip() or instance.client.username,
+                'client_name': client_name,
+                'client_phone': instance.client_phone_contact or instance.client.profile.phone if hasattr(
+                    instance.client, 'profile') else '',
                 'service_title': instance.service.title,
                 'date': instance.date.strftime('%d.%m.%Y'),
                 'time': instance.time.strftime('%H:%M'),
@@ -44,7 +52,6 @@ def send_booking_notification_signal(sender, instance, created, **kwargs):
             barber_id = instance.service.barber.id
 
             # Создаем запись об уведомлении
-            from notifications.models import Notification
             Notification.objects.create(
                 recipient=instance.service.barber,
                 type='booking_new',
@@ -67,41 +74,3 @@ def send_booking_notification_signal(sender, instance, created, **kwargs):
 
         except Exception as e:
             logger.error(f"Ошибка при создании уведомления для бронирования {instance.id}: {str(e)}")
-
-
-# 3. ОБНОВИТЬ notifications/views.py (метод _send_test_notification):
-
-def _send_test_notification(self, user, username):
-    """Отправляет тестовое уведомление для проверки подключения."""
-    try:
-        from notifications.models import Notification
-        from notifications.bot import send_test_message
-
-        # Создаем системное уведомление
-        notification = Notification.objects.create(
-            recipient=user,
-            type='system',
-            title='Подключение уведомлений',
-            content=f'Вы успешно подключили уведомления через Telegram! Теперь вы будете получать информацию о новых бронированиях.',
-            status='pending'
-        )
-
-        # Отправляем уведомление через Telegram (синхронно)
-        success = send_test_message(
-            username=username,
-            title='Подключение успешно!',
-            message='Вы успешно подключили уведомления BarberHub! Теперь вы будете получать уведомления о новых бронированиях ваших услуг.'
-        )
-
-        # Обновляем статус уведомления
-        if success:
-            notification.status = 'sent'
-            from django.utils import timezone
-            notification.sent_at = timezone.now()
-        else:
-            notification.status = 'failed'
-
-        notification.save()
-
-    except Exception as e:
-        logger.error(f"Error sending test notification to {username}: {str(e)}")

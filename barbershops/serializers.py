@@ -24,6 +24,8 @@ class BarbershopSerializer(serializers.ModelSerializer):
     rating = serializers.ReadOnlyField()
     review_count = serializers.ReadOnlyField()
     working_hours = serializers.SerializerMethodField()
+    # Исправленное поле
+    is_verified = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Barbershop
@@ -42,11 +44,11 @@ class BarbershopSerializer(serializers.ModelSerializer):
         return BarbershopStaffSerializer(barber_staff, many=True).data
 
     def get_working_hours(self, obj):
-        """Форматировать рабочие часы для фронтенда"""
+        """Форматировать рабочие часы для фронтенда - всегда возвращаем объект"""
         return {
-            'from': obj.working_hours_from.strftime('%H:%M'),
-            'to': obj.working_hours_to.strftime('%H:%M'),
-            'days': obj.working_days or ['Пн', 'Вт', 'Ср', 'Чт', 'Пт']
+            'from': obj.working_hours_from.strftime('%H:%M') if obj.working_hours_from else '09:00',
+            'to': obj.working_hours_to.strftime('%H:%M') if obj.working_hours_to else '21:00',
+            'days': obj.working_days if obj.working_days else ['Пн', 'Вт', 'Ср', 'Чт', 'Пт']
         }
 
 
