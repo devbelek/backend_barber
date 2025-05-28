@@ -170,3 +170,46 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking.save()
 
         return Response({"status": "Бронирование завершено"})
+
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        """Получить статистику бронирований для барбера"""
+        if not hasattr(request.user, 'profile') or request.user.profile.user_type != 'barber':
+            return Response(
+                {"error": "Доступно только для барберов"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Статистика за последние 30 дней
+        last_month = timezone.now() - timedelta(days=30)
+
+        bookings = Booking.objects.filter(
+            service__barber=request.user,
+            created_at__gte=last_month
+        )
+
+        # Считаем общий доход
+        total_revenue = bookings.filter(status='completed').aggregate(
+            total=Sum('service__price')
+        )['total'] or 0
+
+        # Средний рейтинг барбера
+        from profiles.models import Review
+        avg_rating = Review.objects.filter(barber=request.user).aggregate(
+            avg=Avg('rating')
+        )['avg'] or 0
+
+        stats = {
+            'total': bookings.count(),
+            'pending': bookings.filter(status='pending').count(),
+            'confirmed': bookings.filter(status='confirmed').count(),
+            'completed': bookings.filter(status='completed').count(),
+            'cancelled': bookings.filter(status='cancelled').count(),
+            'totalRevenue': float(total_revenue),
+            'avgRating': round(avg_rating, 1),
+            'by_service': bookings.values('service__title').annotate(
+                count=Count('id')
+            ).order_by('-count')[:5]
+        }
+
+        return Response(stats)
