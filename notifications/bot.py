@@ -1,184 +1,152 @@
 import logging
-from typing import Dict, Optional
-from telegram import Bot, Update
-from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters
+import requests
 import os
 from django.conf import settings
-from datetime import datetime
+from typing import Dict, Optional
 
-# Настройка логирования
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
+# Получаем токен
 TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 if not TOKEN:
-    # Пытаемся получить из settings
     try:
-        from django.conf import settings
         TOKEN = settings.TELEGRAM_BOT_TOKEN
-    except:
+    except AttributeError:
         logger.error("TELEGRAM_BOT_TOKEN не найден!")
-        raise ValueError("TELEGRAM_BOT_TOKEN должен быть установлен!")
-
-# Инициализация бота
-bot = Bot(token=TOKEN)
+        TOKEN = None
 
 
-def start(update: Update, context: CallbackContext) -> None:
-    """Отправляет приветственное сообщение при команде /start."""
-    user = update.effective_user
-    if not user:
-        return
-
-    update.message.reply_text(
-        f"👋 Привет, {user.first_name}! Я бот для уведомлений о бронированиях в BarberHub.\n\n"
-        f"Ваш username в Telegram: @{user.username}\n\n"
-        f"Укажите этот username в настройках вашего профиля барбера, чтобы получать уведомления о новых бронированиях."
-    )
-
-
-def help_command(update: Update, context: CallbackContext) -> None:
-    """Отправляет сообщение с помощью при команде /help."""
-    help_text = (
-        "🤖 *Бот для уведомлений BarberHub*\n\n"
-        "Я отправляю уведомления о новых бронированиях на ваши услуги.\n\n"
-        "*Доступные команды:*\n"
-        "/start - Показать приветственное сообщение\n"
-        "/help - Показать эту справку\n"
-        "/status - Проверить статус подключения\n\n"
-        "Если у вас возникли проблемы, обратитесь в поддержку через приложение."
-    )
-    update.message.reply_text(help_text, parse_mode='Markdown')
-
-
-def status_command(update: Update, context: CallbackContext) -> None:
-    """Проверяет статус подключения пользователя."""
-    user = update.effective_user
-    if not user or not user.username:
-        update.message.reply_text(
-            "⚠️ У вас не установлен username в Telegram. Пожалуйста, установите его в настройках Telegram.")
-        return
-
-    username = user.username.lower()
-
-    # Проверяем в базе данных
-    from notifications.models import TelegramUser
-    try:
-        telegram_user = TelegramUser.objects.get(username=username)
-        barber_name = f"{telegram_user.barber.first_name} {telegram_user.barber.last_name}"
-
-        # Обновляем chat_id, если он отсутствует
-        if not telegram_user.chat_id:
-            telegram_user.chat_id = update.effective_chat.id
-            telegram_user.save()
-
-        update.message.reply_text(
-            f"✅ Вы успешно подключены к системе уведомлений!\n\n"
-            f"Ваш профиль: {barber_name}\n"
-            f"Вы будете получать уведомления о новых бронированиях на ваши услуги."
-        )
-    except TelegramUser.DoesNotExist:
-        update.message.reply_text(
-            f"⚠️ Ваш Telegram аккаунт (@{username}) не связан с аккаунтом барбера в системе.\n\n"
-            f"Пожалуйста, добавьте свой username в настройках профиля на сайте или в приложении."
-        )
-
-
-def handle_message(update: Update, context: CallbackContext) -> None:
-    """Обрабатывает все сообщения, которые не являются командами."""
-    update.message.reply_text(
-        "Я бот для уведомлений и не могу отвечать на сообщения. "
-        "Используйте /help для получения списка доступных команд."
-    )
-
-
-def setup_bot():
-    """Настраивает и возвращает updater бота."""
-    updater = Updater(token=TOKEN)
-    dispatcher = updater.dispatcher
-
-    # Добавляем обработчики команд
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help_command))
-    dispatcher.add_handler(CommandHandler("status", status_command))
-
-    # Обрабатываем сообщения, которые не являются командами
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
-
-    return updater
-
-
-def run_bot():
-    """Запускает бота."""
-    updater = setup_bot()
-    updater.start_polling()
-    updater.idle()
-
-
-async def send_booking_notification(barber_id: int, booking_data: dict) -> bool:
+def send_telegram_message(chat_id: str, message: str) -> bool:
     """
-    Отправляет уведомление о новом бронировании барберу.
-
-    Args:
-        barber_id (int): ID барбера в системе
-        booking_data (dict): Данные о бронировании
-
-    Returns:
-        bool: True если уведомление успешно отправлено, иначе False
+    Отправка сообщения через Telegram Bot API (синхронно)
     """
+    if not TOKEN:
+        logger.error("Telegram bot токен не настроен")
+        return False
+
     try:
-        # Получаем username из базы данных
-        from notifications.models import TelegramUser
-        try:
-            telegram_user = TelegramUser.objects.get(barber_id=barber_id)
-            username = telegram_user.username
-            chat_id = telegram_user.chat_id
+        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+        data = {
+            'chat_id': chat_id,
+            'text': message,
+            'parse_mode': 'Markdown'
+        }
 
-            # Формируем сообщение
-            client_name = booking_data.get('client_name', 'Клиент')
-            service_title = booking_data.get('service_title', 'Услуга')
-            date = booking_data.get('date', 'Дата не указана')
-            time = booking_data.get('time', 'Время не указано')
-            notes = booking_data.get('notes', '')
+        response = requests.post(url, data=data, timeout=10)
 
-            message = (
-                f"🔔 *Новое бронирование!*\n\n"
-                f"👤 Клиент: {client_name}\n"
-                f"✂️ Услуга: {service_title}\n"
-                f"📅 Дата: {date}\n"
-                f"🕒 Время: {time}\n"
-            )
-
-            if notes:
-                message += f"\n📝 Примечания: {notes}\n"
-
-            message += f"\nДля управления бронированиями перейдите в личный кабинет на сайте или в приложении."
-
-            # Отправляем сообщение
-            if chat_id:
-                # Если есть chat_id, отправляем напрямую в чат
-                bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
-            else:
-                # Иначе отправляем через username
-                bot.send_message(chat_id=f"@{username}", text=message, parse_mode='Markdown')
-
-            # Обновляем последнее уведомление
-            telegram_user.last_notification = datetime.now()
-            telegram_user.save()
-
+        if response.status_code == 200:
+            logger.info(f"Сообщение успешно отправлено в чат {chat_id}")
             return True
-
-        except TelegramUser.DoesNotExist:
-            logger.warning(f"Telegram username not found for barber ID {barber_id}")
-            return False
-
-        except Exception as e:
-            logger.error(f"Error sending notification to barber {barber_id}: {str(e)}")
+        else:
+            logger.error(f"Ошибка отправки сообщения: {response.status_code} - {response.text}")
             return False
 
     except Exception as e:
-        logger.error(f"Error in send_booking_notification: {str(e)}")
+        logger.error(f"Исключение при отправке сообщения: {str(e)}")
+        return False
+
+
+def send_booking_notification(barber_id: int, booking_data: dict) -> bool:
+    """
+    Отправка уведомления о бронировании (синхронно)
+    """
+    try:
+        from notifications.models import TelegramUser
+
+        # Находим Telegram пользователя
+        telegram_user = TelegramUser.objects.get(barber_id=barber_id)
+
+        # Формируем сообщение
+        client_name = booking_data.get('client_name', 'Клиент')
+        service_title = booking_data.get('service_title', 'Услуга')
+        date = booking_data.get('date', 'Дата не указана')
+        time = booking_data.get('time', 'Время не указано')
+        notes = booking_data.get('notes', '')
+
+        message = (
+            f"🔔 *Новое бронирование!*\n\n"
+            f"👤 Клиент: {client_name}\n"
+            f"✂️ Услуга: {service_title}\n"
+            f"📅 Дата: {date}\n"
+            f"🕒 Время: {time}\n"
+        )
+
+        if notes:
+            message += f"\n📝 Примечания: {notes}\n"
+
+        message += f"\nДля управления бронированиями перейдите в личный кабинет."
+
+        # Определяем chat_id
+        chat_id = telegram_user.chat_id or f"@{telegram_user.username}"
+
+        # Отправляем сообщение
+        success = send_telegram_message(chat_id, message)
+
+        if success:
+            # Обновляем время последнего уведомления
+            from django.utils import timezone
+            telegram_user.last_notification = timezone.now()
+            telegram_user.save()
+
+        return success
+
+    except TelegramUser.DoesNotExist:
+        logger.warning(f"Telegram username не найден для барбера ID {barber_id}")
+        return False
+    except Exception as e:
+        logger.error(f"Ошибка при отправке уведомления барберу {barber_id}: {str(e)}")
+        return False
+
+
+def send_test_message(username: str, title: str, message: str) -> bool:
+    """
+    Отправка тестового сообщения
+    """
+    try:
+        from notifications.models import TelegramUser
+
+        telegram_user = TelegramUser.objects.get(username=username)
+        formatted_message = f"*{title}*\n\n{message}"
+        chat_id = telegram_user.chat_id or f"@{username}"
+
+        success = send_telegram_message(chat_id, formatted_message)
+
+        if success:
+            from django.utils import timezone
+            telegram_user.last_notification = timezone.now()
+            telegram_user.save()
+
+        return success
+
+    except Exception as e:
+        logger.error(f"Ошибка отправки тестового сообщения: {str(e)}")
+        return False
+
+
+def send_test_message(username: str, title: str, message: str) -> bool:
+    """
+    Отправка тестового сообщения
+    """
+    try:
+        from notifications.models import TelegramUser
+
+        telegram_user = TelegramUser.objects.get(username=username)
+        formatted_message = f"*{title}*\n\n{message}"
+        chat_id = telegram_user.chat_id or f"@{username}"
+
+        success = send_telegram_message(chat_id, formatted_message)
+
+        if success:
+            from django.utils import timezone
+            telegram_user.last_notification = timezone.now()
+            telegram_user.save()
+
+        return success
+
+    except Exception as e:
+        logger.error(f"Ошибка отправки тестового сообщения: {str(e)}")
         return False

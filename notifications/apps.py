@@ -1,8 +1,8 @@
 from django.apps import AppConfig
 
-class NotificationsConfig(AppConfig):  # Изменено с BookingsConfig
+class NotificationsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'notifications'  # Изменено с 'bookings'
+    name = 'notifications'
 
     def ready(self):
-        import notifications.signals  # Изменено
+        import notifications.signals  # Подключаем сигналы

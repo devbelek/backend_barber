@@ -8,7 +8,6 @@ from .serializers import (
     NotificationSerializer,
     TelegramRegistrationSerializer
 )
-from .tasks import send_telegram_notification
 import logging
 
 logger = logging.getLogger(__name__)
@@ -92,13 +91,24 @@ class TelegramRegistrationView(views.APIView):
                 status='pending'
             )
 
-            # Отправляем уведомление через Telegram
-            send_telegram_notification.delay(
+            # ИСПРАВЛЕНО: Импортируем и используем функцию из bot.py
+            from .bot import send_test_message
+
+            # Отправляем уведомление через Telegram (синхронно)
+            success = send_test_message(
                 username=username,
                 title='Подключение успешно!',
-                message='Вы успешно подключили уведомления BarberHub! Теперь вы будете получать уведомления о новых бронированиях ваших услуг.',
-                notification_id=notification.id
+                message='Вы успешно подключили уведомления BarberHub! Теперь вы будете получать уведомления о новых бронированиях ваших услуг.'
             )
+
+            # Обновляем статус уведомления
+            if success:
+                notification.status = 'sent'
+                notification.sent_at = timezone.now()
+            else:
+                notification.status = 'failed'
+
+            notification.save()
 
         except Exception as e:
             logger.error(f"Error sending test notification to {username}: {str(e)}")
