@@ -1,4 +1,3 @@
-
 import requests
 from django.contrib.auth.models import User
 from rest_framework import generics, permissions, status
@@ -7,13 +6,49 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 import jwt
-
 import json
 
 from .serializers import UserSerializer, UserProfileSerializer
 from .models import UserProfile
+from drf_spectacular.utils import extend_schema, OpenApiExample
 
 
+@extend_schema(
+    summary="Изменить тип пользователя",
+    description="Изменяет тип пользователя с клиента на барбера или наоборот. При смене на барбера требуется указать Telegram username.",
+    request={
+        'type': 'object',
+        'properties': {
+            'user_type': {
+                'type': 'string',
+                'enum': ['client', 'barber'],
+                'description': 'Новый тип пользователя'
+            },
+            'telegram': {
+                'type': 'string',
+                'description': 'Telegram username (обязателен при смене на барбера)',
+                'example': 'my_username'
+            }
+        },
+        'required': ['user_type']
+    },
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'message': {'type': 'string', 'example': 'Тип пользователя изменен на barber'},
+                'user': {'type': 'object', 'description': 'Обновленные данные пользователя'}
+            }
+        },
+        400: {
+            'type': 'object',
+            'properties': {
+                'error': {'type': 'string', 'example': 'Для барбера необходим Telegram'}
+            }
+        }
+    },
+    tags=['users']
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def change_user_type(request):
@@ -44,6 +79,38 @@ def change_user_type(request):
     except Exception as e:
         return Response({"error": str(e)}, status=400)
 
+@extend_schema(
+    summary="Регистрация клиента",
+    description="Регистрирует нового клиента с email и паролем",
+    request={
+        'type': 'object',
+        'properties': {
+            'email': {'type': 'string', 'format': 'email', 'example': 'client@example.com'},
+            'password': {'type': 'string', 'minLength': 8, 'example': 'securepassword123'},
+            'first_name': {'type': 'string', 'example': 'Иван'},
+            'last_name': {'type': 'string', 'example': 'Иванов'},
+            'phone': {'type': 'string', 'example': '+996700123456'}
+        },
+        'required': ['email', 'password']
+    },
+    responses={
+        201: {
+            'type': 'object',
+            'properties': {
+                'access': {'type': 'string', 'description': 'JWT Access Token'},
+                'refresh': {'type': 'string', 'description': 'JWT Refresh Token'},
+                'user': {'type': 'object', 'description': 'Данные созданного пользователя'}
+            }
+        },
+        400: {
+            'type': 'object',
+            'properties': {
+                'error': {'type': 'string', 'example': 'Пользователь с таким email уже существует'}
+            }
+        }
+    },
+    tags=['auth']
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_client(request):
@@ -91,6 +158,35 @@ def register_client(request):
     }, status=201)
 
 
+@extend_schema(
+    summary="Авторизация клиента",
+    description="Авторизует клиента по email и паролю",
+    request={
+        'type': 'object',
+        'properties': {
+            'email': {'type': 'string', 'format': 'email', 'example': 'client@example.com'},
+            'password': {'type': 'string', 'example': 'securepassword123'}
+        },
+        'required': ['email', 'password']
+    },
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'access': {'type': 'string', 'description': 'JWT Access Token'},
+                'refresh': {'type': 'string', 'description': 'JWT Refresh Token'},
+                'user': {'type': 'object', 'description': 'Данные пользователя'}
+            }
+        },
+        400: {
+            'type': 'object',
+            'properties': {
+                'error': {'type': 'string', 'example': 'Неверный пароль'}
+            }
+        }
+    },
+    tags=['auth']
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_client(request):
@@ -118,6 +214,22 @@ def login_client(request):
         return Response({"error": "Пользователь не найден"}, status=400)
 
 
+@extend_schema(
+    summary="Удалить аккаунт",
+    description="Полностью удаляет аккаунт текущего пользователя и все связанные данные",
+    responses={
+        204: {
+            'description': 'Аккаунт успешно удален'
+        },
+        400: {
+            'type': 'object',
+            'properties': {
+                'error': {'type': 'string'}
+            }
+        }
+    },
+    tags=['users']
+)
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_account(request):
@@ -130,6 +242,50 @@ def delete_account(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    summary="Авторизация через Google",
+    description="Авторизует или регистрирует пользователя через Google OAuth. Поддерживает создание как клиентов, так и барберов.",
+    request={
+        'type': 'object',
+        'properties': {
+            'token': {
+                'type': 'string',
+                'description': 'Google ID Token, полученный с фронтенда',
+                'example': 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...'
+            },
+            'user_type': {
+                'type': 'string',
+                'enum': ['client', 'barber'],
+                'default': 'client',
+                'description': 'Тип пользователя для новых регистраций'
+            }
+        },
+        'required': ['token']
+    },
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'access': {'type': 'string', 'description': 'JWT Access Token'},
+                'refresh': {'type': 'string', 'description': 'JWT Refresh Token'},
+                'user': {'type': 'object', 'description': 'Данные пользователя'}
+            }
+        },
+        400: {
+            'type': 'object',
+            'properties': {
+                'error': {'type': 'string', 'example': 'Invalid token'}
+            }
+        },
+        500: {
+            'type': 'object',
+            'properties': {
+                'error': {'type': 'string', 'example': 'Authentication failed: внутренняя ошибка'}
+            }
+        }
+    },
+    tags=['auth']
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def google_auth(request):
@@ -199,6 +355,47 @@ def google_auth(request):
         return Response({"error": f"Authentication failed: {str(e)}"}, status=500)
 
 
+@extend_schema(
+    summary="Регистрация Google пользователя",
+    description="Регистрирует пользователя через Google OAuth (устаревший метод, используйте google_auth)",
+    request={
+        'type': 'object',
+        'properties': {
+            'email': {'type': 'string', 'format': 'email', 'example': 'user@gmail.com'},
+            'first_name': {'type': 'string', 'example': 'Иван'},
+            'last_name': {'type': 'string', 'example': 'Иванов'},
+            'picture': {'type': 'string', 'format': 'uri', 'example': 'https://example.com/photo.jpg'}
+        },
+        'required': ['email']
+    },
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'id': {'type': 'integer'},
+                'username': {'type': 'string'},
+                'email': {'type': 'string'},
+                'first_name': {'type': 'string'},
+                'last_name': {'type': 'string'},
+                'profile': {
+                    'type': 'object',
+                    'properties': {
+                        'user_type': {'type': 'string'},
+                        'photo': {'type': 'string', 'nullable': True}
+                    }
+                }
+            }
+        },
+        400: {
+            'type': 'object',
+            'properties': {
+                'error': {'type': 'string'}
+            }
+        }
+    },
+    tags=['auth'],
+    deprecated=True
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_google_user(request):
@@ -266,6 +463,17 @@ def register_google_user(request):
     })
 
 
+@extend_schema(
+    summary="Профиль текущего пользователя",
+    description="Получает или обновляет профиль текущего авторизованного пользователя",
+    responses={
+        200: {
+            'type': 'object',
+            'description': 'Данные пользователя с профилем'
+        }
+    },
+    tags=['users']
+)
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -274,6 +482,49 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
+@extend_schema(
+    summary="Обновить профиль пользователя",
+    description="Обновляет профиль текущего пользователя. Поддерживает как JSON, так и FormData для загрузки файлов.",
+    request={
+        'type': 'object',
+        'properties': {
+            'user_type': {'type': 'string', 'enum': ['client', 'barber']},
+            'phone': {'type': 'string', 'example': '+996700123456'},
+            'photo': {'type': 'string', 'format': 'binary', 'description': 'Фото профиля'},
+            'whatsapp': {'type': 'string', 'example': '+996700123456'},
+            'telegram': {'type': 'string', 'example': 'username'},
+            'address': {'type': 'string', 'example': 'Бишкек, ул. Манаса 45'},
+            'offers_home_service': {'type': 'boolean'},
+            'bio': {'type': 'string', 'description': 'Информация о барбере'},
+            'working_hours_from': {'type': 'string', 'format': 'time', 'example': '09:00'},
+            'working_hours_to': {'type': 'string', 'format': 'time', 'example': '20:00'},
+            'working_days': {
+                'type': 'array',
+                'items': {'type': 'string', 'enum': ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']},
+                'example': ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
+            },
+            'latitude': {'type': 'number', 'format': 'float', 'example': 42.8746},
+            'longitude': {'type': 'number', 'format': 'float', 'example': 74.5698}
+        }
+    },
+    responses={
+        200: {
+            'type': 'object',
+            'description': 'Обновленные данные профиля'
+        },
+        400: {
+            'type': 'object',
+            'properties': {
+                'field_name': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                    'example': ['Это поле обязательно.']
+                }
+            }
+        }
+    },
+    tags=['users']
+)
 class UserProfileUpdateView(generics.UpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]

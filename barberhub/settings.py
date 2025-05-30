@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'djoser',
     'django_filters',
     'import_export',
+    'drf_spectacular',  # Добавляем Swagger
 
     # Наши приложения
     'users',
@@ -298,6 +299,8 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
+    # Добавляем настройки для drf-spectacular
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # JWT settings
@@ -360,3 +363,71 @@ LOGGING = {
 
 # Telegram settings
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+
+# DRF Spectacular settings (Swagger)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'BarberHub API',
+    'DESCRIPTION': 'API для приложения BarberHub - платформы для поиска барберов и бронирования услуг',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': '/api/',
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SORT_OPERATIONS': False,
+
+    # Настройки для JWT аутентификации
+    'SECURITY': [
+        {
+            'type': 'http',
+            'scheme': 'bearer',
+            'bearerFormat': 'JWT',
+        }
+    ],
+
+    # Дополнительные настройки для лучшего отображения
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': False,
+        'filter': True,
+    },
+
+    # Настройки для ReDoc
+    'REDOC_UI_SETTINGS': {
+        'hideDownloadButton': False,
+        'hideHostname': False,
+        'hideLoading': False,
+        'hideSchemaPattern': True,
+        'scrollYOffset': 0,
+        'theme': {
+            'colors': {
+                'primary': {
+                    'main': '#9A0F34'  # Ваш основной цвет
+                }
+            }
+        }
+    },
+
+    # Включаем описания для тегов
+    'TAGS': [
+        {'name': 'auth', 'description': 'Аутентификация и регистрация'},
+        {'name': 'users', 'description': 'Управление пользователями и профилями'},
+        {'name': 'services', 'description': 'Управление услугами барберов'},
+        {'name': 'bookings', 'description': 'Бронирование услуг'},
+        {'name': 'profiles', 'description': 'Профили, избранное и отзывы'},
+        {'name': 'barbershops', 'description': 'Управление барбершопами'},
+        {'name': 'notifications', 'description': 'Уведомления через Telegram'},
+    ],
+
+    # Исключения
+    'ENUM_NAME_OVERRIDES': {
+        'ValidationErrorEnum': 'drf_spectacular.utils.validation_error_enum',
+    },
+
+    # Кастомные расширения схемы
+    'PREPROCESSING_HOOKS': [
+        'drf_spectacular.hooks.preprocess_exclude_path_format',
+    ],
+    'POSTPROCESSING_HOOKS': [
+        'drf_spectacular.hooks.postprocess_schema_enums',
+    ],
+}

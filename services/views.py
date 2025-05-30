@@ -7,12 +7,110 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from django.db.models import Q, Avg, Count
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 from .models import Service, ServiceImage, Banner
 from .serializers import ServiceSerializer, BannerSerializer
 from .permissions import IsBarberOrReadOnly
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список услуг",
+        description="Возвращает список всех услуг с возможностью фильтрации по типу, длине волос, стилю и локации",
+        parameters=[
+            OpenApiParameter(
+                name='types[]',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Фильтр по типам стрижки (можно передать несколько)',
+                enum=['classic', 'fade', 'undercut', 'crop', 'pompadour', 'textured'],
+                many=True
+            ),
+            OpenApiParameter(
+                name='lengths[]',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Фильтр по длине волос (можно передать несколько)',
+                enum=['short', 'medium', 'long'],
+                many=True
+            ),
+            OpenApiParameter(
+                name='styles[]',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Фильтр по стилю (можно передать несколько)',
+                enum=['business', 'casual', 'trendy', 'vintage', 'modern'],
+                many=True
+            ),
+            OpenApiParameter(
+                name='locations[]',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Фильтр по локации (можно передать несколько)',
+                many=True
+            ),
+            OpenApiParameter(
+                name='barber',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description='ID барбера для фильтрации услуг'
+            ),
+            OpenApiParameter(
+                name='search',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Поиск по названию, описанию, имени барбера или локации'
+            ),
+            OpenApiParameter(
+                name='ordering',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Сортировка результатов',
+                enum=['price', '-price', 'created_at', '-created_at', 'views', '-views']
+            ),
+            OpenApiParameter(
+                name='limit',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description='Количество результатов на странице'
+            ),
+            OpenApiParameter(
+                name='offset',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description='Смещение для пагинации'
+            ),
+        ],
+        tags=['services']
+    ),
+    create=extend_schema(
+        summary="Создать новую услугу",
+        description="Создает новую услугу. Доступно только барберам. Обязательно загрузить хотя бы одно изображение.",
+        tags=['services']
+    ),
+    retrieve=extend_schema(
+        summary="Получить детали услуги",
+        description="Возвращает подробную информацию об услуге включая изображения и данные барбера",
+        tags=['services']
+    ),
+    update=extend_schema(
+        summary="Обновить услугу",
+        description="Обновляет услугу. Доступно только владельцу услуги.",
+        tags=['services']
+    ),
+    partial_update=extend_schema(
+        summary="Частично обновить услугу",
+        description="Частично обновляет услугу. Доступно только владельцу услуги.",
+        tags=['services']
+    ),
+    destroy=extend_schema(
+        summary="Удалить услугу",
+        description="Удаляет услугу. Доступно только владельцу услуги.",
+        tags=['services']
+    )
+)
 class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
@@ -119,6 +217,25 @@ class ServiceViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticatedOrReadOnly]
         return [permission() for permission in permission_classes]
 
+    @extend_schema(
+        summary="Увеличить счетчик просмотров",
+        description="Увеличивает счетчик просмотров для услуги на 1",
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'views': {'type': 'integer', 'description': 'Новое количество просмотров'}
+                }
+            },
+            404: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'example': 'Услуга не найдена'}
+                }
+            }
+        },
+        tags=['services']
+    )
     @action(detail=True, methods=['post'])
     def increment_views(self, request, pk=None):
         """Увеличивает счетчик просмотров для услуги"""
@@ -133,6 +250,54 @@ class ServiceViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+    @extend_schema(
+        summary="Найти услуги поблизости",
+        description="Возвращает услуги в указанном радиусе от заданных координат",
+        parameters=[
+            OpenApiParameter(
+                name='latitude',
+                type=OpenApiTypes.FLOAT,
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description='Широта (-90 до 90)'
+            ),
+            OpenApiParameter(
+                name='longitude',
+                type=OpenApiTypes.FLOAT,
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description='Долгота (-180 до 180)'
+            ),
+            OpenApiParameter(
+                name='radius',
+                type=OpenApiTypes.FLOAT,
+                location=OpenApiParameter.QUERY,
+                description='Радиус поиска в километрах (по умолчанию 5)',
+                default=5
+            ),
+        ],
+        responses={
+            200: {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {'type': 'integer'},
+                        'title': {'type': 'string'},
+                        'price': {'type': 'string'},
+                        'distance': {'type': 'number', 'description': 'Расстояние в км'}
+                    }
+                }
+            },
+            400: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string'}
+                }
+            }
+        },
+        tags=['services']
+    )
     @action(detail=False, methods=['get'])
     def nearby(self, request):
         """Получить услуги поблизости"""
@@ -253,6 +418,24 @@ class ServiceViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+@extend_schema(
+    summary="Получить активные баннеры",
+    description="Возвращает список всех активных баннеров для главной страницы",
+    responses={
+        200: {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'integer'},
+                    'desktop_image': {'type': 'string', 'format': 'uri'},
+                    'mobile_image': {'type': 'string', 'format': 'uri'}
+                }
+            }
+        }
+    },
+    tags=['services']
+)
 class ActiveBannerAPIView(APIView):
     def get(self, request):
         banners = Banner.objects.filter(is_active=True)

@@ -8,10 +8,66 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from datetime import datetime, timedelta
 import pytz
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum, Avg
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список бронирований",
+        description="Возвращает бронирования текущего пользователя. Барберы видят бронирования на свои услуги, клиенты - свои бронирования.",
+        parameters=[
+            OpenApiParameter(
+                name='status',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Фильтр по статусу бронирования',
+                enum=['pending', 'confirmed', 'completed', 'cancelled']
+            ),
+            OpenApiParameter(
+                name='date',
+                type=OpenApiTypes.DATE,
+                location=OpenApiParameter.QUERY,
+                description='Фильтр по дате бронирования (YYYY-MM-DD)'
+            ),
+            OpenApiParameter(
+                name='ordering',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Сортировка результатов',
+                enum=['date', '-date', 'time', '-time', 'created_at', '-created_at']
+            ),
+        ],
+        tags=['bookings']
+    ),
+    create=extend_schema(
+        summary="Создать новое бронирование",
+        description="Создает новое бронирование. Можно бронировать как авторизованным пользователям, так и анонимно с указанием контактных данных.",
+        tags=['bookings']
+    ),
+    retrieve=extend_schema(
+        summary="Получить детали бронирования",
+        description="Возвращает подробную информацию о бронировании",
+        tags=['bookings']
+    ),
+    update=extend_schema(
+        summary="Обновить бронирование",
+        description="Обновляет бронирование. Доступно клиенту-владельцу или барберу услуги",
+        tags=['bookings']
+    ),
+    partial_update=extend_schema(
+        summary="Частично обновить бронирование",
+        description="Частично обновляет бронирование. Доступно клиенту-владельцу или барберу услуги",
+        tags=['bookings']
+    ),
+    destroy=extend_schema(
+        summary="Отменить бронирование",
+        description="Отменяет бронирование. Доступно клиенту-владельцу или барберу услуги",
+        tags=['bookings']
+    )
+)
 class BookingViewSet(viewsets.ModelViewSet):
     serializer_class = BookingSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
@@ -34,6 +90,51 @@ class BookingViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+    @extend_schema(
+        summary="Получить доступные временные слоты",
+        description="Возвращает доступные временные слоты для бронирования у конкретного барбера на указанную дату",
+        parameters=[
+            OpenApiParameter(
+                name='barber',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description='ID барбера'
+            ),
+            OpenApiParameter(
+                name='date',
+                type=OpenApiTypes.DATE,
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description='Дата в формате YYYY-MM-DD'
+            ),
+        ],
+        responses={
+            200: {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'time': {'type': 'string', 'example': '10:00', 'description': 'Время слота в формате HH:MM'},
+                        'available': {'type': 'boolean', 'description': 'Доступен ли слот для бронирования'}
+                    }
+                },
+                'example': [
+                    {'time': '09:00', 'available': True},
+                    {'time': '09:30', 'available': True},
+                    {'time': '10:00', 'available': False},
+                    {'time': '10:30', 'available': True}
+                ]
+            },
+            400: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'example': "Необходимо указать параметры 'barber' и 'date'"}
+                }
+            }
+        },
+        tags=['bookings']
+    )
     @action(detail=False, methods=['get'])
     def available_slots(self, request):
         """
@@ -97,80 +198,42 @@ class BookingViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    @action(detail=False, methods=['get'])
-    def statistics(self, request):
-        """Получить статистику бронирований для барбера"""
-        if not hasattr(request.user, 'profile') or request.user.profile.user_type != 'barber':
-            return Response(
-                {"error": "Доступно только для барберов"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        # Статистика за последние 30 дней
-        last_month = timezone.now() - timedelta(days=30)
-
-        bookings = Booking.objects.filter(
-            service__barber=request.user,
-            created_at__gte=last_month
-        )
-
-        stats = {
-            'total': bookings.count(),
-            'pending': bookings.filter(status='pending').count(),
-            'confirmed': bookings.filter(status='confirmed').count(),
-            'completed': bookings.filter(status='completed').count(),
-            'cancelled': bookings.filter(status='cancelled').count(),
-            'by_service': bookings.values('service__title').annotate(
-                count=Count('id')
-            ).order_by('-count')[:5]
-        }
-
-        return Response(stats)
-
-    @action(detail=True, methods=['post'])
-    def confirm(self, request, pk=None):
-        """Подтвердить бронирование (только для барбера)"""
-        booking = self.get_object()
-
-        if booking.service.barber != request.user:
-            return Response(
-                {"error": "Вы не можете подтвердить это бронирование"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        if booking.status != 'pending':
-            return Response(
-                {"error": "Можно подтвердить только ожидающие бронирования"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        booking.status = 'confirmed'
-        booking.save()
-
-        return Response({"status": "Бронирование подтверждено"})
-
-    @action(detail=True, methods=['post'])
-    def complete(self, request, pk=None):
-        """Отметить бронирование как выполненное (только для барбера)"""
-        booking = self.get_object()
-
-        if booking.service.barber != request.user:
-            return Response(
-                {"error": "Вы не можете завершить это бронирование"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        if booking.status != 'confirmed':
-            return Response(
-                {"error": "Можно завершить только подтвержденные бронирования"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        booking.status = 'completed'
-        booking.save()
-
-        return Response({"status": "Бронирование завершено"})
-
+    @extend_schema(
+        summary="Получить статистику бронирований",
+        description="Возвращает статистику бронирований для барбера за последние 30 дней. Доступно только барберам.",
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'total': {'type': 'integer', 'description': 'Общее количество бронирований'},
+                    'pending': {'type': 'integer', 'description': 'Ожидающие подтверждения'},
+                    'confirmed': {'type': 'integer', 'description': 'Подтвержденные'},
+                    'completed': {'type': 'integer', 'description': 'Завершенные'},
+                    'cancelled': {'type': 'integer', 'description': 'Отмененные'},
+                    'totalRevenue': {'type': 'number', 'description': 'Общий доход от завершенных бронирований'},
+                    'avgRating': {'type': 'number', 'description': 'Средний рейтинг барбера'},
+                    'by_service': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'service__title': {'type': 'string'},
+                                'count': {'type': 'integer'}
+                            }
+                        },
+                        'description': 'Топ 5 услуг по количеству бронирований'
+                    }
+                }
+            },
+            403: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'example': 'Доступно только для барберов'}
+                }
+            }
+        },
+        tags=['bookings']
+    )
     @action(detail=False, methods=['get'])
     def statistics(self, request):
         """Получить статистику бронирований для барбера"""
@@ -213,3 +276,97 @@ class BookingViewSet(viewsets.ModelViewSet):
         }
 
         return Response(stats)
+
+    @extend_schema(
+        summary="Подтвердить бронирование",
+        description="Подтверждает бронирование. Доступно только барберу услуги.",
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'status': {'type': 'string', 'example': 'Бронирование подтверждено'}
+                }
+            },
+            400: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'example': 'Можно подтвердить только ожидающие бронирования'}
+                }
+            },
+            403: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'example': 'Вы не можете подтвердить это бронирование'}
+                }
+            }
+        },
+        tags=['bookings']
+    )
+    @action(detail=True, methods=['post'])
+    def confirm(self, request, pk=None):
+        """Подтвердить бронирование (только для барбера)"""
+        booking = self.get_object()
+
+        if booking.service.barber != request.user:
+            return Response(
+                {"error": "Вы не можете подтвердить это бронирование"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if booking.status != 'pending':
+            return Response(
+                {"error": "Можно подтвердить только ожидающие бронирования"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        booking.status = 'confirmed'
+        booking.save()
+
+        return Response({"status": "Бронирование подтверждено"})
+
+    @extend_schema(
+        summary="Завершить бронирование",
+        description="Отмечает бронирование как выполненное. Доступно только барберу услуги.",
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'status': {'type': 'string', 'example': 'Бронирование завершено'}
+                }
+            },
+            400: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'example': 'Можно завершить только подтвержденные бронирования'}
+                }
+            },
+            403: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'example': 'Вы не можете завершить это бронирование'}
+                }
+            }
+        },
+        tags=['bookings']
+    )
+    @action(detail=True, methods=['post'])
+    def complete(self, request, pk=None):
+        """Отметить бронирование как выполненное (только для барбера)"""
+        booking = self.get_object()
+
+        if booking.service.barber != request.user:
+            return Response(
+                {"error": "Вы не можете завершить это бронирование"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if booking.status != 'confirmed':
+            return Response(
+                {"error": "Можно завершить только подтвержденные бронирования"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        booking.status = 'completed'
+        booking.save()
+
+        return Response({"status": "Бронирование завершено"})

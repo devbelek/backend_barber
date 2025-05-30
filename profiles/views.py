@@ -11,15 +11,32 @@ from rest_framework import generics, permissions
 from django.contrib.auth.models import User
 from users.serializers import UserProfileSerializer
 from users.models import UserProfile
-
-from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from .models import Favorite
-from .serializers import FavoriteSerializer
-from services.models import Service
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить избранные услуги",
+        description="Возвращает список избранных услуг текущего пользователя",
+        tags=['profiles']
+    ),
+    create=extend_schema(
+        summary="Добавить услугу в избранное",
+        description="Добавляет услугу в избранное текущего пользователя",
+        tags=['profiles']
+    ),
+    retrieve=extend_schema(
+        summary="Получить детали избранной услуги",
+        description="Возвращает детали конкретной избранной услуги",
+        tags=['profiles']
+    ),
+    destroy=extend_schema(
+        summary="Удалить услугу из избранного",
+        description="Удаляет услугу из избранного по ID услуги",
+        tags=['profiles']
+    )
+)
 class FavoriteViewSet(viewsets.ModelViewSet):
     serializer_class = FavoriteSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -45,6 +62,46 @@ class FavoriteViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response({'status': 'Услуга уже в избранном'}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        summary="Переключить избранное для услуги",
+        description="Добавляет услугу в избранное если её там нет, или удаляет если есть",
+        request={
+            'type': 'object',
+            'properties': {
+                'service': {
+                    'type': 'integer',
+                    'description': 'ID услуги для переключения',
+                    'example': 1
+                }
+            },
+            'required': ['service']
+        },
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'status': {
+                        'type': 'string',
+                        'enum': ['added', 'removed'],
+                        'description': 'Статус операции'
+                    }
+                }
+            },
+            400: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'example': 'Не указан ID услуги'}
+                }
+            },
+            404: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'example': 'Услуга не найдена'}
+                }
+            }
+        },
+        tags=['profiles']
+    )
     @action(detail=False, methods=['post'], url_path='toggle')
     def toggle(self, request):
         """Переключение избранного для сервиса"""
@@ -93,6 +150,25 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         except Favorite.DoesNotExist:
             return Response({'error': 'Не найдено в избранном'}, status=status.HTTP_404_NOT_FOUND)
 
+    @extend_schema(
+        summary="Удалить услугу из избранного",
+        description="Удаляет конкретную услугу из избранного по ID услуги",
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'status': {'type': 'string', 'example': 'Услуга удалена из избранного'}
+                }
+            },
+            404: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'example': 'Услуга не найдена в избранном'}
+                }
+            }
+        },
+        tags=['profiles']
+    )
     @action(detail=True, methods=['delete'], url_path='remove')
     def remove(self, request, pk=None):
         try:
@@ -103,6 +179,40 @@ class FavoriteViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Услуга не найдена в избранном'}, status=status.HTTP_404_NOT_FOUND)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список отзывов",
+        description="Возвращает отзывы текущего пользователя или отзывы о конкретном барбере",
+        parameters=[
+            OpenApiParameter(
+                name='barber',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description='ID барбера для фильтрации отзывов'
+            )
+        ],
+        tags=['profiles']
+    ),
+    create=extend_schema(
+        summary="Создать отзыв",
+        description="Создает новый отзыв о барбере. Один пользователь может оставить только один отзыв одному барберу.",
+        tags=['profiles']
+    ),
+    retrieve=extend_schema(
+        summary="Получить детали отзыва",
+        tags=['profiles']
+    ),
+    update=extend_schema(
+        summary="Обновить отзыв",
+        description="Обновляет отзыв. Доступно только автору отзыва.",
+        tags=['profiles']
+    ),
+    destroy=extend_schema(
+        summary="Удалить отзыв",
+        description="Удаляет отзыв. Доступно только автору отзыва.",
+        tags=['profiles']
+    )
+)
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -114,6 +224,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return Review.objects.filter(author=self.request.user)
 
 
+@extend_schema(
+    summary="Получить список барберов",
+    description="Возвращает список всех зарегистрированных барберов в системе",
+    responses={
+        200: {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'description': 'Данные барбера (см. схему User)'
+            }
+        }
+    },
+    tags=['profiles']
+)
 class BarberListView(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]  # Изменено с AllowAny
@@ -123,6 +247,47 @@ class BarberListView(generics.ListAPIView):
         return User.objects.filter(profile__user_type='barber')
 
 
+@extend_schema(
+    summary="Получить детали барбера",
+    description="Возвращает подробную информацию о барбере включая рейтинг, количество отзывов и портфолио",
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'id': {'type': 'integer'},
+                'username': {'type': 'string'},
+                'first_name': {'type': 'string'},
+                'last_name': {'type': 'string'},
+                'email': {'type': 'string'},
+                'profile': {
+                    'type': 'object',
+                    'description': 'Данные профиля барбера'
+                },
+                'avg_rating': {
+                    'type': 'number',
+                    'format': 'float',
+                    'description': 'Средний рейтинг барбера'
+                },
+                'review_count': {
+                    'type': 'integer',
+                    'description': 'Количество отзывов о барбере'
+                },
+                'portfolio': {
+                    'type': 'array',
+                    'items': {'type': 'string', 'format': 'uri'},
+                    'description': 'Изображения из портфолио барбера'
+                }
+            }
+        },
+        404: {
+            'type': 'object',
+            'properties': {
+                'detail': {'type': 'string', 'example': 'Не найдено.'}
+            }
+        }
+    },
+    tags=['profiles']
+)
 class BarberDetailView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -160,6 +325,31 @@ class BarberDetailView(generics.RetrieveAPIView):
         return Response(data)
 
 
+@extend_schema(
+    summary="Обновить профиль пользователя",
+    description="Обновляет профиль текущего пользователя",
+    request={
+        'type': 'object',
+        'description': 'Данные для обновления профиля (см. схему UserProfile)'
+    },
+    responses={
+        200: {
+            'type': 'object',
+            'description': 'Обновленные данные профиля'
+        },
+        400: {
+            'type': 'object',
+            'properties': {
+                'field_name': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                    'example': ['Это поле обязательно.']
+                }
+            }
+        }
+    },
+    tags=['profiles']
+)
 class UserProfileUpdateView(generics.UpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]

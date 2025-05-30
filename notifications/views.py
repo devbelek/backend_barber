@@ -9,10 +9,59 @@ from .serializers import (
     TelegramRegistrationSerializer
 )
 import logging
+from drf_spectacular.utils import extend_schema
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema(
+    summary="Зарегистрировать Telegram аккаунт",
+    description="Регистрирует или обновляет Telegram аккаунт барбера для получения уведомлений о новых бронированиях",
+    request={
+        'type': 'object',
+        'properties': {
+            'username': {
+                'type': 'string',
+                'description': 'Telegram username без символа @',
+                'example': 'my_telegram_username',
+                'pattern': '^[a-zA-Z0-9_]+$'
+            }
+        },
+        'required': ['username']
+    },
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'detail': {'type': 'string', 'example': 'Ваш Telegram аккаунт уже подключен'}
+            }
+        },
+        201: {
+            'type': 'object',
+            'properties': {
+                'detail': {'type': 'string', 'example': 'Ваш Telegram аккаунт успешно подключен'}
+            }
+        },
+        400: {
+            'type': 'object',
+            'properties': {
+                'detail': {'type': 'string', 'example': 'Этот Telegram username уже зарегистрирован другим барбером'},
+                'username': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                    'example': ['Имя пользователя Telegram может содержать только буквы, цифры и символ подчеркивания']
+                }
+            }
+        },
+        403: {
+            'type': 'object',
+            'properties': {
+                'detail': {'type': 'string', 'example': 'Только барберы могут регистрировать Telegram аккаунт для уведомлений'}
+            }
+        }
+    },
+    tags=['notifications']
+)
 class TelegramRegistrationView(views.APIView):
     """
     API для регистрации Telegram аккаунта барбера.
@@ -114,6 +163,34 @@ class TelegramRegistrationView(views.APIView):
             logger.error(f"Error sending test notification to {username}: {str(e)}")
 
 
+@extend_schema(
+    summary="Статус подключения Telegram",
+    description="Проверяет статус подключения Telegram аккаунта текущего барбера",
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'registered': {'type': 'boolean', 'description': 'Зарегистрирован ли Telegram аккаунт'},
+                'username': {'type': 'string', 'description': 'Telegram username (если зарегистрирован)'},
+                'is_active': {'type': 'boolean', 'description': 'Активен ли аккаунт'},
+                'connected_at': {'type': 'string', 'format': 'date-time', 'description': 'Дата подключения'}
+            },
+            'example': {
+                'registered': True,
+                'username': 'my_username',
+                'is_active': True,
+                'connected_at': '2025-05-30T10:00:00Z'
+            }
+        },
+        403: {
+            'type': 'object',
+            'properties': {
+                'detail': {'type': 'string', 'example': 'Только барберы могут использовать Telegram для уведомлений'}
+            }
+        }
+    },
+    tags=['notifications']
+)
 class TelegramStatusView(views.APIView):
     """
     API для проверки статуса подключения Telegram.
@@ -142,6 +219,31 @@ class TelegramStatusView(views.APIView):
             })
 
 
+@extend_schema(
+    summary="Список уведомлений",
+    description="Возвращает список последних 50 уведомлений для текущего пользователя",
+    responses={
+        200: {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'integer'},
+                    'type': {'type': 'string', 'enum': ['booking_new', 'booking_confirmed', 'booking_cancelled', 'booking_reminder', 'system']},
+                    'type_display': {'type': 'string', 'description': 'Отображаемое название типа'},
+                    'title': {'type': 'string'},
+                    'content': {'type': 'string'},
+                    'status': {'type': 'string', 'enum': ['pending', 'sent', 'failed', 'read']},
+                    'status_display': {'type': 'string', 'description': 'Отображаемое название статуса'},
+                    'created_at': {'type': 'string', 'format': 'date-time'},
+                    'sent_at': {'type': 'string', 'format': 'date-time', 'nullable': True},
+                    'read_at': {'type': 'string', 'format': 'date-time', 'nullable': True}
+                }
+            }
+        }
+    },
+    tags=['notifications']
+)
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def list_notifications(request):
@@ -153,6 +255,25 @@ def list_notifications(request):
     return Response(serializer.data)
 
 
+@extend_schema(
+    summary="Отметить уведомление как прочитанное",
+    description="Помечает конкретное уведомление как прочитанное",
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'status': {'type': 'string', 'example': 'success'}
+            }
+        },
+        404: {
+            'type': 'object',
+            'properties': {
+                'detail': {'type': 'string', 'example': 'Уведомление не найдено'}
+            }
+        }
+    },
+    tags=['notifications']
+)
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def mark_as_read(request, notification_id):
@@ -172,6 +293,19 @@ def mark_as_read(request, notification_id):
         )
 
 
+@extend_schema(
+    summary="Отметить все уведомления как прочитанные",
+    description="Помечает все неприроченные уведомления пользователя как прочитанные",
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'status': {'type': 'string', 'example': 'success'}
+            }
+        }
+    },
+    tags=['notifications']
+)
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def mark_all_as_read(request):

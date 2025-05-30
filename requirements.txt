@@ -12,6 +12,7 @@ djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
 djoser==2.3.1
 drf-social-oauth2==3.1.0
+drf-spectacular==0.27.2
 idna==3.10
 jwcrypto==1.5.6
 python-telegram-bot==20.7
