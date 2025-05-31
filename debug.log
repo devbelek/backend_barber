@@ -1,0 +1,517 @@
+INFO 2025-06-01 02:04:53,864 bot 74896 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:04:53,864 bot 74896 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:04:53,864 bot 74896 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:04:53,864 bot 74896 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:04:54,751 bot 74896 8294451264 Бот подключен успешно: {'ok': True, 'result': {'id': 7993091176, 'is_bot': True, 'first_name': 'tarak', 'username': 'barber_tarak_bot', 'can_join_groups': True, 'can_read_all_group_messages': False, 'supports_inline_queries': False, 'can_connect_to_business': False, 'has_main_web_app': False}}
+INFO 2025-06-01 02:04:54,751 bot 74896 8294451264 Бот подключен успешно: {'ok': True, 'result': {'id': 7993091176, 'is_bot': True, 'first_name': 'tarak', 'username': 'barber_tarak_bot', 'can_join_groups': True, 'can_read_all_group_messages': False, 'supports_inline_queries': False, 'can_connect_to_business': False, 'has_main_web_app': False}}
+INFO 2025-06-01 02:05:06,000 bot 75004 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:05:06,000 bot 75004 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:05:06,000 bot 75004 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:05:06,000 bot 75004 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:05:06,208 bot 75007 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:05:06,208 bot 75007 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:05:06,208 bot 75007 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:05:06,208 bot 75007 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:05:18,295 bot 75022 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:05:18,295 bot 75022 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:05:18,295 bot 75022 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:05:18,295 bot 75022 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:05:30,397 bot 75037 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:05:30,397 bot 75037 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:05:30,398 bot 75037 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:05:30,398 bot 75037 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:05:30,507 bot 75037 8294451264 Отправляем тестовое сообщение пользователю USERNAME
+INFO 2025-06-01 02:05:30,507 bot 75037 8294451264 Отправляем тестовое сообщение пользователю USERNAME
+ERROR 2025-06-01 02:05:30,509 bot 75037 8294451264 TelegramUser с username USERNAME не найден
+ERROR 2025-06-01 02:05:30,509 bot 75037 8294451264 TelegramUser с username USERNAME не найден
+INFO 2025-06-01 02:05:36,133 bot 75040 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:05:36,133 bot 75040 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:05:36,133 bot 75040 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:05:36,133 bot 75040 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:05:36,234 bot 75040 8294451264 Отправляем тестовое сообщение пользователю belekasrar
+INFO 2025-06-01 02:05:36,234 bot 75040 8294451264 Отправляем тестовое сообщение пользователю belekasrar
+INFO 2025-06-01 02:05:36,237 bot 75040 8294451264 Отправляем сообщение в чат @belekasrar
+INFO 2025-06-01 02:05:36,237 bot 75040 8294451264 Отправляем сообщение в чат @belekasrar
+DEBUG 2025-06-01 02:05:36,237 bot 75040 8294451264 Сообщение: *Тест подключения*
+
+Это тестовое сообщение от BarberHub бота! Если вы видите это сообщение, значит в...
+DEBUG 2025-06-01 02:05:36,237 bot 75040 8294451264 Сообщение: *Тест подключения*
+
+Это тестовое сообщение от BarberHub бота! Если вы видите это сообщение, значит в...
+INFO 2025-06-01 02:05:36,681 bot 75040 8294451264 Ответ от Telegram API: 400
+INFO 2025-06-01 02:05:36,681 bot 75040 8294451264 Ответ от Telegram API: 400
+DEBUG 2025-06-01 02:05:36,682 bot 75040 8294451264 Содержимое ответа: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+DEBUG 2025-06-01 02:05:36,682 bot 75040 8294451264 Содержимое ответа: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+ERROR 2025-06-01 02:05:36,682 bot 75040 8294451264 Ошибка отправки сообщения: 400 - {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+ERROR 2025-06-01 02:05:36,682 bot 75040 8294451264 Ошибка отправки сообщения: 400 - {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+INFO 2025-06-01 02:06:07,359 bot 75080 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:06:07,359 bot 75080 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:06:07,360 bot 75080 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:06:07,360 bot 75080 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:06:07,467 bot 75080 8294451264 Отправляем тестовое сообщение пользователю belekasrar
+INFO 2025-06-01 02:06:07,467 bot 75080 8294451264 Отправляем тестовое сообщение пользователю belekasrar
+INFO 2025-06-01 02:06:07,471 bot 75080 8294451264 Отправляем сообщение в чат @belekasrar
+INFO 2025-06-01 02:06:07,471 bot 75080 8294451264 Отправляем сообщение в чат @belekasrar
+DEBUG 2025-06-01 02:06:07,471 bot 75080 8294451264 Сообщение: *Тест подключения*
+
+Это тестовое сообщение от BarberHub бота! Если вы видите это сообщение, значит в...
+DEBUG 2025-06-01 02:06:07,471 bot 75080 8294451264 Сообщение: *Тест подключения*
+
+Это тестовое сообщение от BarberHub бота! Если вы видите это сообщение, значит в...
+INFO 2025-06-01 02:06:07,866 bot 75080 8294451264 Ответ от Telegram API: 400
+INFO 2025-06-01 02:06:07,866 bot 75080 8294451264 Ответ от Telegram API: 400
+DEBUG 2025-06-01 02:06:07,867 bot 75080 8294451264 Содержимое ответа: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+DEBUG 2025-06-01 02:06:07,867 bot 75080 8294451264 Содержимое ответа: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+ERROR 2025-06-01 02:06:07,867 bot 75080 8294451264 Ошибка отправки сообщения: 400 - {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+ERROR 2025-06-01 02:06:07,867 bot 75080 8294451264 Ошибка отправки сообщения: 400 - {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+INFO 2025-06-01 02:06:53,742 bot 75126 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:06:53,742 bot 75126 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:06:53,742 bot 75126 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:06:53,742 bot 75126 8294451264 Token starts with: 7993091176...
+WARNING 2025-06-01 02:07:26,548 log 75007 6250377216 Unauthorized: /api/services/
+WARNING 2025-06-01 02:07:26,549 log 75007 6216724480 Unauthorized: /api/services/banners/
+WARNING 2025-06-01 02:07:26,551 log 75007 6267203584 Unauthorized: /api/auth/users/me/
+WARNING 2025-06-01 02:07:26,550 log 75007 6233550848 Unauthorized: /api/services/
+WARNING 2025-06-01 02:07:26,558 log 75007 6284029952 Unauthorized: /api/services/
+WARNING 2025-06-01 02:07:26,559 log 75007 6199898112 Unauthorized: /api/services/banners/
+WARNING 2025-06-01 02:07:26,561 log 75007 6267203584 Unauthorized: /api/services/
+ERROR 2025-06-01 02:07:26,785 log 75007 6267203584 Internal Server Error: /api/auth/jwt/refresh/
+Traceback (most recent call last):
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/views.py", line 44, in post
+    serializer.is_valid(raise_exception=True)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 447, in run_validation
+    value = self.validate(value)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/serializers.py", line 141, in validate
+    refresh.outstand()
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/tokens.py", line 222, in outstand
+    return OutstandingToken.objects.get_or_create(
+AttributeError: type object 'OutstandingToken' has no attribute 'objects'
+ERROR 2025-06-01 02:07:26,792 log 75007 6250377216 Internal Server Error: /api/auth/jwt/refresh/
+Traceback (most recent call last):
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/views.py", line 44, in post
+    serializer.is_valid(raise_exception=True)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 447, in run_validation
+    value = self.validate(value)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/serializers.py", line 141, in validate
+    refresh.outstand()
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/tokens.py", line 222, in outstand
+    return OutstandingToken.objects.get_or_create(
+AttributeError: type object 'OutstandingToken' has no attribute 'objects'
+ERROR 2025-06-01 02:07:26,793 log 75007 6284029952 Internal Server Error: /api/auth/jwt/refresh/
+Traceback (most recent call last):
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/views.py", line 44, in post
+    serializer.is_valid(raise_exception=True)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 447, in run_validation
+    value = self.validate(value)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/serializers.py", line 141, in validate
+    refresh.outstand()
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/tokens.py", line 222, in outstand
+    return OutstandingToken.objects.get_or_create(
+AttributeError: type object 'OutstandingToken' has no attribute 'objects'
+ERROR 2025-06-01 02:07:26,801 log 75007 6199898112 Internal Server Error: /api/auth/jwt/refresh/
+Traceback (most recent call last):
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/views.py", line 44, in post
+    serializer.is_valid(raise_exception=True)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 447, in run_validation
+    value = self.validate(value)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/serializers.py", line 141, in validate
+    refresh.outstand()
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/tokens.py", line 222, in outstand
+    return OutstandingToken.objects.get_or_create(
+AttributeError: type object 'OutstandingToken' has no attribute 'objects'
+ERROR 2025-06-01 02:07:26,808 log 75007 6233550848 Internal Server Error: /api/auth/jwt/refresh/
+Traceback (most recent call last):
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/views.py", line 44, in post
+    serializer.is_valid(raise_exception=True)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 447, in run_validation
+    value = self.validate(value)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/serializers.py", line 141, in validate
+    refresh.outstand()
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/tokens.py", line 222, in outstand
+    return OutstandingToken.objects.get_or_create(
+AttributeError: type object 'OutstandingToken' has no attribute 'objects'
+ERROR 2025-06-01 02:07:26,814 log 75007 6216724480 Internal Server Error: /api/auth/jwt/refresh/
+Traceback (most recent call last):
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/views.py", line 44, in post
+    serializer.is_valid(raise_exception=True)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 447, in run_validation
+    value = self.validate(value)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/serializers.py", line 141, in validate
+    refresh.outstand()
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/tokens.py", line 222, in outstand
+    return OutstandingToken.objects.get_or_create(
+AttributeError: type object 'OutstandingToken' has no attribute 'objects'
+ERROR 2025-06-01 02:07:26,882 log 75007 6267203584 Internal Server Error: /api/auth/jwt/refresh/
+Traceback (most recent call last):
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/views.py", line 44, in post
+    serializer.is_valid(raise_exception=True)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/serializers.py", line 447, in run_validation
+    value = self.validate(value)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/serializers.py", line 141, in validate
+    refresh.outstand()
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework_simplejwt/tokens.py", line 222, in outstand
+    return OutstandingToken.objects.get_or_create(
+AttributeError: type object 'OutstandingToken' has no attribute 'objects'
+WARNING 2025-06-01 02:07:53,414 log 75007 6216724480 Unauthorized: /api/auth/users/me/
+WARNING 2025-06-01 02:08:00,455 log 75007 6199898112 Unauthorized: /api/services/2/increment_views/
+WARNING 2025-06-01 02:08:03,406 log 75007 6199898112 Unauthorized: /api/bookings/
+WARNING 2025-06-01 02:08:16,580 log 75007 6233550848 Unauthorized: /api/notifications/telegram-status/
+WARNING 2025-06-01 02:08:16,584 log 75007 6216724480 Unauthorized: /api/notifications/telegram-status/
+WARNING 2025-06-01 02:08:16,873 log 75007 6199898112 Unauthorized: /api/auth/users/me/
+WARNING 2025-06-01 02:08:21,897 log 75007 6199898112 Unauthorized: /api/services/2/increment_views/
+WARNING 2025-06-01 02:08:37,184 log 75007 6199898112 Unauthorized: /api/notifications/telegram-status/
+WARNING 2025-06-01 02:08:37,189 log 75007 6216724480 Unauthorized: /api/notifications/telegram-status/
+WARNING 2025-06-01 02:08:37,459 log 75007 6216724480 Unauthorized: /api/auth/users/me/
+WARNING 2025-06-01 02:08:38,325 log 75007 6199898112 Unauthorized: /api/bookings/
+WARNING 2025-06-01 02:08:38,330 log 75007 6216724480 Unauthorized: /api/bookings/
+WARNING 2025-06-01 02:08:38,334 log 75007 6199898112 Unauthorized: /api/bookings/
+WARNING 2025-06-01 02:08:39,547 log 75007 6199898112 Unauthorized: /api/bookings/
+WARNING 2025-06-01 02:08:40,305 log 75007 6199898112 Unauthorized: /api/profiles/favorites/
+WARNING 2025-06-01 02:08:40,310 log 75007 6216724480 Unauthorized: /api/profiles/favorites/
+ERROR 2025-06-01 02:09:10,176 log 75007 6199898112 Internal Server Error: /api/users/auth/google/
+INFO 2025-06-01 02:10:03,902 signals 75007 6199898112 Сигнал получен: created=True, booking_id=7
+INFO 2025-06-01 02:10:03,902 signals 75007 6199898112 Сигнал получен: created=True, booking_id=7
+INFO 2025-06-01 02:10:03,903 signals 75007 6199898112 Подготовлены данные для уведомления: barber_id=2, data={'client_name': 'Улукбек Асраров', 'client_phone': '+996220105460', 'service_title': 'Нефорский', 'date': '01.06.2025', 'time': '13:00', 'notes': ''}
+INFO 2025-06-01 02:10:03,903 signals 75007 6199898112 Подготовлены данные для уведомления: barber_id=2, data={'client_name': 'Улукбек Асраров', 'client_phone': '+996220105460', 'service_title': 'Нефорский', 'date': '01.06.2025', 'time': '13:00', 'notes': ''}
+INFO 2025-06-01 02:10:03,905 signals 75007 6199898112 Создано уведомление в БД: 4
+INFO 2025-06-01 02:10:03,905 signals 75007 6199898112 Создано уведомление в БД: 4
+INFO 2025-06-01 02:10:03,905 signals 75007 6217297920 Начинаем отправку уведомления барберу 2
+INFO 2025-06-01 02:10:03,905 signals 75007 6199898112 Задача уведомления для бронирования 7 запущена
+INFO 2025-06-01 02:10:03,905 signals 75007 6217297920 Начинаем отправку уведомления барберу 2
+INFO 2025-06-01 02:10:03,905 signals 75007 6199898112 Задача уведомления для бронирования 7 запущена
+INFO 2025-06-01 02:10:03,905 bot 75007 6217297920 Ищем TelegramUser для барбера 2
+INFO 2025-06-01 02:10:03,905 bot 75007 6217297920 Ищем TelegramUser для барбера 2
+INFO 2025-06-01 02:10:03,911 bot 75007 6217297920 Найден TelegramUser: username=belekasrar, chat_id=None
+INFO 2025-06-01 02:10:03,911 bot 75007 6217297920 Найден TelegramUser: username=belekasrar, chat_id=None
+INFO 2025-06-01 02:10:03,912 bot 75007 6217297920 Используем chat_id: @belekasrar
+INFO 2025-06-01 02:10:03,912 bot 75007 6217297920 Используем chat_id: @belekasrar
+INFO 2025-06-01 02:10:03,912 bot 75007 6217297920 Отправляем сообщение в чат @belekasrar
+INFO 2025-06-01 02:10:03,912 bot 75007 6217297920 Отправляем сообщение в чат @belekasrar
+DEBUG 2025-06-01 02:10:03,913 bot 75007 6217297920 Сообщение: 🔔 *Новое бронирование!*
+
+👤 Клиент: Улукбек Асраров
+📱 Телефон: +996220105460
+✂️ Услуга: Нефорский
+📅 Д...
+DEBUG 2025-06-01 02:10:03,913 bot 75007 6217297920 Сообщение: 🔔 *Новое бронирование!*
+
+👤 Клиент: Улукбек Асраров
+📱 Телефон: +996220105460
+✂️ Услуга: Нефорский
+📅 Д...
+INFO 2025-06-01 02:10:04,349 bot 75007 6217297920 Ответ от Telegram API: 400
+INFO 2025-06-01 02:10:04,349 bot 75007 6217297920 Ответ от Telegram API: 400
+DEBUG 2025-06-01 02:10:04,350 bot 75007 6217297920 Содержимое ответа: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+DEBUG 2025-06-01 02:10:04,350 bot 75007 6217297920 Содержимое ответа: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+ERROR 2025-06-01 02:10:04,350 bot 75007 6217297920 Ошибка отправки сообщения: 400 - {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+ERROR 2025-06-01 02:10:04,350 bot 75007 6217297920 Ошибка отправки сообщения: 400 - {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+ERROR 2025-06-01 02:10:04,351 signals 75007 6217297920 Не удалось отправить уведомление барберу 2
+ERROR 2025-06-01 02:10:04,351 signals 75007 6217297920 Не удалось отправить уведомление барберу 2
+INFO 2025-06-01 02:14:35,149 bot 75702 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:14:35,149 bot 75702 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:14:35,150 bot 75702 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:14:35,150 bot 75702 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:14:45,509 bot 75722 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:14:45,509 bot 75722 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:14:45,509 bot 75722 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:14:45,509 bot 75722 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:17:33,019 bot 75874 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:17:33,019 bot 75874 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:17:33,019 bot 75874 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:17:33,019 bot 75874 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:17:33,621 bot 75874 8294451264 Бот подключен успешно: {'ok': True, 'result': {'id': 7993091176, 'is_bot': True, 'first_name': 'tarak', 'username': 'barber_tarak_bot', 'can_join_groups': True, 'can_read_all_group_messages': False, 'supports_inline_queries': False, 'can_connect_to_business': False, 'has_main_web_app': False}}
+INFO 2025-06-01 02:17:33,621 bot 75874 8294451264 Бот подключен успешно: {'ok': True, 'result': {'id': 7993091176, 'is_bot': True, 'first_name': 'tarak', 'username': 'barber_tarak_bot', 'can_join_groups': True, 'can_read_all_group_messages': False, 'supports_inline_queries': False, 'can_connect_to_business': False, 'has_main_web_app': False}}
+INFO 2025-06-01 02:37:02,223 bot 76912 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:37:02,223 bot 76912 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:37:02,224 bot 76912 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:37:02,224 bot 76912 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:37:25,579 signals 75007 6199898112 Сигнал получен: created=True, booking_id=8
+INFO 2025-06-01 02:37:25,579 signals 75007 6199898112 Сигнал получен: created=True, booking_id=8
+INFO 2025-06-01 02:37:25,580 signals 75007 6199898112 Подготовлены данные для уведомления: barber_id=2, data={'client_name': 'Улукбек Асраров', 'client_phone': '+996220105460', 'service_title': 'Кыргызбайский метод', 'date': '01.06.2025', 'time': '11:00', 'notes': ''}
+INFO 2025-06-01 02:37:25,580 signals 75007 6199898112 Подготовлены данные для уведомления: barber_id=2, data={'client_name': 'Улукбек Асраров', 'client_phone': '+996220105460', 'service_title': 'Кыргызбайский метод', 'date': '01.06.2025', 'time': '11:00', 'notes': ''}
+INFO 2025-06-01 02:37:25,583 signals 75007 6199898112 Создано уведомление в БД: 5
+INFO 2025-06-01 02:37:25,583 signals 75007 6199898112 Создано уведомление в БД: 5
+INFO 2025-06-01 02:37:25,583 signals 75007 6217297920 Начинаем отправку уведомления барберу 2
+INFO 2025-06-01 02:37:25,583 signals 75007 6199898112 Задача уведомления для бронирования 8 запущена
+INFO 2025-06-01 02:37:25,583 signals 75007 6217297920 Начинаем отправку уведомления барберу 2
+INFO 2025-06-01 02:37:25,583 signals 75007 6199898112 Задача уведомления для бронирования 8 запущена
+INFO 2025-06-01 02:37:25,584 bot 75007 6217297920 Ищем TelegramUser для барбера 2
+INFO 2025-06-01 02:37:25,584 bot 75007 6217297920 Ищем TelegramUser для барбера 2
+INFO 2025-06-01 02:37:25,588 bot 75007 6217297920 Найден TelegramUser: username=belekasrar, chat_id=5782828417
+INFO 2025-06-01 02:37:25,588 bot 75007 6217297920 Найден TelegramUser: username=belekasrar, chat_id=5782828417
+INFO 2025-06-01 02:37:25,589 bot 75007 6217297920 Используем chat_id: 5782828417
+INFO 2025-06-01 02:37:25,589 bot 75007 6217297920 Используем chat_id: 5782828417
+INFO 2025-06-01 02:37:25,589 bot 75007 6217297920 Отправляем сообщение в чат 5782828417
+INFO 2025-06-01 02:37:25,589 bot 75007 6217297920 Отправляем сообщение в чат 5782828417
+DEBUG 2025-06-01 02:37:25,590 bot 75007 6217297920 Сообщение: 🔔 *Новое бронирование!*
+
+👤 Клиент: Улукбек Асраров
+📱 Телефон: +996220105460
+✂️ Услуга: Кыргызбайский...
+DEBUG 2025-06-01 02:37:25,590 bot 75007 6217297920 Сообщение: 🔔 *Новое бронирование!*
+
+👤 Клиент: Улукбек Асраров
+📱 Телефон: +996220105460
+✂️ Услуга: Кыргызбайский...
+INFO 2025-06-01 02:37:26,125 bot 75007 6217297920 Ответ от Telegram API: 200
+INFO 2025-06-01 02:37:26,125 bot 75007 6217297920 Ответ от Telegram API: 200
+DEBUG 2025-06-01 02:37:26,126 bot 75007 6217297920 Содержимое ответа: {"ok":true,"result":{"message_id":15,"from":{"id":7993091176,"is_bot":true,"first_name":"tarak","username":"barber_tarak_bot"},"chat":{"id":5782828417,"first_name":"\u0411\u0435\u043b\u0435\u043a","last_name":"\u0410\u0441\u0440\u0430\u0440\u043e\u0432","username":"belekasrar","type":"private"},"date":1748723846,"text":"\ud83d\udd14 \u041d\u043e\u0432\u043e\u0435 \u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435!\n\n\ud83d\udc64 \u041a\u043b\u0438\u0435\u043d\u0442: \u0423\u043b\u0443\u043a\u0431\u0435\u043a \u0410\u0441\u0440\u0430\u0440\u043e\u0432\n\ud83d\udcf1 \u0422\u0435\u043b\u0435\u0444\u043e\u043d: +996220105460\n\u2702\ufe0f \u0423\u0441\u043b\u0443\u0433\u0430: \u041a\u044b\u0440\u0433\u044b\u0437\u0431\u0430\u0439\u0441\u043a\u0438\u0439 \u043c\u0435\u0442\u043e\u0434\n\ud83d\udcc5 \u0414\u0430\u0442\u0430: 01.06.2025\n\ud83d\udd52 \u0412\u0440\u0435\u043c\u044f: 11:00\n\n\u2705 \u0414\u043b\u044f \u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f \u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f\u043c\u0438 \u043f\u0435\u0440\u0435\u0439\u0434\u0438\u0442\u0435 \u0432 \u043b\u0438\u0447\u043d\u044b\u0439 \u043a\u0430\u0431\u0438\u043d\u0435\u0442.","entities":[{"offset":3,"length":19,"type":"bold"},{"offset":63,"length":13,"type":"phone_number"}]}}
+DEBUG 2025-06-01 02:37:26,126 bot 75007 6217297920 Содержимое ответа: {"ok":true,"result":{"message_id":15,"from":{"id":7993091176,"is_bot":true,"first_name":"tarak","username":"barber_tarak_bot"},"chat":{"id":5782828417,"first_name":"\u0411\u0435\u043b\u0435\u043a","last_name":"\u0410\u0441\u0440\u0430\u0440\u043e\u0432","username":"belekasrar","type":"private"},"date":1748723846,"text":"\ud83d\udd14 \u041d\u043e\u0432\u043e\u0435 \u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435!\n\n\ud83d\udc64 \u041a\u043b\u0438\u0435\u043d\u0442: \u0423\u043b\u0443\u043a\u0431\u0435\u043a \u0410\u0441\u0440\u0430\u0440\u043e\u0432\n\ud83d\udcf1 \u0422\u0435\u043b\u0435\u0444\u043e\u043d: +996220105460\n\u2702\ufe0f \u0423\u0441\u043b\u0443\u0433\u0430: \u041a\u044b\u0440\u0433\u044b\u0437\u0431\u0430\u0439\u0441\u043a\u0438\u0439 \u043c\u0435\u0442\u043e\u0434\n\ud83d\udcc5 \u0414\u0430\u0442\u0430: 01.06.2025\n\ud83d\udd52 \u0412\u0440\u0435\u043c\u044f: 11:00\n\n\u2705 \u0414\u043b\u044f \u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f \u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f\u043c\u0438 \u043f\u0435\u0440\u0435\u0439\u0434\u0438\u0442\u0435 \u0432 \u043b\u0438\u0447\u043d\u044b\u0439 \u043a\u0430\u0431\u0438\u043d\u0435\u0442.","entities":[{"offset":3,"length":19,"type":"bold"},{"offset":63,"length":13,"type":"phone_number"}]}}
+INFO 2025-06-01 02:37:26,132 bot 75007 6217297920 Сообщение успешно отправлено в чат 5782828417
+INFO 2025-06-01 02:37:26,132 bot 75007 6217297920 Сообщение успешно отправлено в чат 5782828417
+INFO 2025-06-01 02:37:26,137 bot 75007 6217297920 Обновлено время последнего уведомления для belekasrar
+INFO 2025-06-01 02:37:26,137 bot 75007 6217297920 Обновлено время последнего уведомления для belekasrar
+INFO 2025-06-01 02:37:26,137 signals 75007 6217297920 Уведомление успешно отправлено барберу 2
+INFO 2025-06-01 02:37:26,137 signals 75007 6217297920 Уведомление успешно отправлено барберу 2
+INFO 2025-06-01 02:38:33,857 signals 75007 6217297920 Сигнал получен: created=False, booking_id=7
+INFO 2025-06-01 02:38:33,857 signals 75007 6217297920 Сигнал получен: created=False, booking_id=7
+INFO 2025-06-01 02:38:35,492 signals 75007 6199898112 Сигнал получен: created=False, booking_id=8
+INFO 2025-06-01 02:38:35,492 signals 75007 6199898112 Сигнал получен: created=False, booking_id=8
+INFO 2025-06-01 02:38:36,178 signals 75007 6199898112 Сигнал получен: created=False, booking_id=7
+INFO 2025-06-01 02:38:36,178 signals 75007 6199898112 Сигнал получен: created=False, booking_id=7
+INFO 2025-06-01 02:38:36,889 signals 75007 6199898112 Сигнал получен: created=False, booking_id=8
+INFO 2025-06-01 02:38:36,889 signals 75007 6199898112 Сигнал получен: created=False, booking_id=8
+ERROR 2025-06-01 02:38:41,967 log 75007 6217297920 Internal Server Error: /api/services/
+Traceback (most recent call last):
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/fields/__init__.py", line 2128, in get_prep_value
+    return int(value)
+ValueError: invalid literal for int() with base 10: 'me'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/drf_spectacular/drainage.py", line 207, in wrapped_method
+    return method(self, request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/mixins.py", line 38, in list
+    queryset = self.filter_queryset(self.get_queryset())
+  File "/Users/makbuk/PycharmProjects/tarak_backend/barberhub-backend/services/views.py", line 192, in get_queryset
+    queryset = queryset.filter(barber_id=barber)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/query.py", line 1481, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/query.py", line 1499, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/query.py", line 1506, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/sql/query.py", line 1643, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/sql/query.py", line 1675, in _add_q
+    child_clause, needed_inner = self.build_filter(
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/sql/query.py", line 1585, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/sql/query.py", line 1412, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/lookups.py", line 38, in __init__
+    self.rhs = self.get_prep_lookup()
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/fields/related_lookups.py", line 112, in get_prep_lookup
+    self.rhs = target_field.get_prep_value(self.rhs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/fields/__init__.py", line 2130, in get_prep_value
+    raise e.__class__(
+ValueError: Field 'id' expected a number but got 'me'.
+ERROR 2025-06-01 02:38:42,005 log 75007 6199898112 Internal Server Error: /api/services/
+Traceback (most recent call last):
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/fields/__init__.py", line 2128, in get_prep_value
+    return int(value)
+ValueError: invalid literal for int() with base 10: 'me'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/drf_spectacular/drainage.py", line 207, in wrapped_method
+    return method(self, request, *args, **kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/rest_framework/mixins.py", line 38, in list
+    queryset = self.filter_queryset(self.get_queryset())
+  File "/Users/makbuk/PycharmProjects/tarak_backend/barberhub-backend/services/views.py", line 192, in get_queryset
+    queryset = queryset.filter(barber_id=barber)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/query.py", line 1481, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/query.py", line 1499, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/query.py", line 1506, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/sql/query.py", line 1643, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/sql/query.py", line 1675, in _add_q
+    child_clause, needed_inner = self.build_filter(
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/sql/query.py", line 1585, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/sql/query.py", line 1412, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/lookups.py", line 38, in __init__
+    self.rhs = self.get_prep_lookup()
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/fields/related_lookups.py", line 112, in get_prep_lookup
+    self.rhs = target_field.get_prep_value(self.rhs)
+  File "/Users/makbuk/PycharmProjects/tarak_backend/.venv/lib/python3.10/site-packages/django/db/models/fields/__init__.py", line 2130, in get_prep_value
+    raise e.__class__(
+ValueError: Field 'id' expected a number but got 'me'.
+INFO 2025-06-01 02:41:26,848 bot 77246 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:41:26,848 bot 77246 8294451264 Telegram bot token: настроен
+INFO 2025-06-01 02:41:26,848 bot 77246 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:41:26,848 bot 77246 8294451264 Token starts with: 7993091176...
+INFO 2025-06-01 02:42:12,836 bot 77246 8294451264 Отправляем сообщение в чат 5782828417
+INFO 2025-06-01 02:42:12,836 bot 77246 8294451264 Отправляем сообщение в чат 5782828417
+DEBUG 2025-06-01 02:42:12,837 bot 77246 8294451264 Сообщение: 🧪 ТЕСТ из Django shell...
+DEBUG 2025-06-01 02:42:12,837 bot 77246 8294451264 Сообщение: 🧪 ТЕСТ из Django shell...
+INFO 2025-06-01 02:42:13,341 bot 77246 8294451264 Ответ от Telegram API: 200
+INFO 2025-06-01 02:42:13,341 bot 77246 8294451264 Ответ от Telegram API: 200
+DEBUG 2025-06-01 02:42:13,341 bot 77246 8294451264 Содержимое ответа: {"ok":true,"result":{"message_id":16,"from":{"id":7993091176,"is_bot":true,"first_name":"tarak","username":"barber_tarak_bot"},"chat":{"id":5782828417,"first_name":"\u0411\u0435\u043b\u0435\u043a","last_name":"\u0410\u0441\u0440\u0430\u0440\u043e\u0432","username":"belekasrar","type":"private"},"date":1748724133,"text":"\ud83e\uddea \u0422\u0415\u0421\u0422 \u0438\u0437 Django shell"}}
+DEBUG 2025-06-01 02:42:13,341 bot 77246 8294451264 Содержимое ответа: {"ok":true,"result":{"message_id":16,"from":{"id":7993091176,"is_bot":true,"first_name":"tarak","username":"barber_tarak_bot"},"chat":{"id":5782828417,"first_name":"\u0411\u0435\u043b\u0435\u043a","last_name":"\u0410\u0441\u0440\u0430\u0440\u043e\u0432","username":"belekasrar","type":"private"},"date":1748724133,"text":"\ud83e\uddea \u0422\u0415\u0421\u0422 \u0438\u0437 Django shell"}}
+INFO 2025-06-01 02:42:13,341 bot 77246 8294451264 Сообщение успешно отправлено в чат 5782828417
+INFO 2025-06-01 02:42:13,341 bot 77246 8294451264 Сообщение успешно отправлено в чат 5782828417

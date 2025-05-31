@@ -1,3 +1,4 @@
+# notifications/signals.py
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from bookings.models import Booking
@@ -14,6 +15,7 @@ def send_notification_background(barber_id, booking_data):
     Фоновая отправка уведомления (в отдельном потоке)
     """
     try:
+        logger.info(f"Начинаем отправку уведомления барберу {barber_id}")
         success = send_booking_notification(barber_id, booking_data)
 
         if success:
@@ -30,6 +32,8 @@ def send_booking_notification_signal(sender, instance, created, **kwargs):
     """
     Обрабатывает сигнал сохранения бронирования и отправляет уведомление барберу
     """
+    logger.info(f"Сигнал получен: created={created}, booking_id={instance.id}")
+
     if created:  # Только для новых бронирований
         try:
             # Подготавливаем данные для уведомления
@@ -40,8 +44,9 @@ def send_booking_notification_signal(sender, instance, created, **kwargs):
 
             booking_data = {
                 'client_name': client_name,
-                'client_phone': instance.client_phone_contact or instance.client.profile.phone if hasattr(
-                    instance.client, 'profile') else '',
+                'client_phone': instance.client_phone_contact or (
+                    instance.client.profile.phone if hasattr(instance.client, 'profile') else ''
+                ),
                 'service_title': instance.service.title,
                 'date': instance.date.strftime('%d.%m.%Y'),
                 'time': instance.time.strftime('%H:%M'),
@@ -51,8 +56,10 @@ def send_booking_notification_signal(sender, instance, created, **kwargs):
             # Получаем ID барбера
             barber_id = instance.service.barber.id
 
+            logger.info(f"Подготовлены данные для уведомления: barber_id={barber_id}, data={booking_data}")
+
             # Создаем запись об уведомлении
-            Notification.objects.create(
+            notification = Notification.objects.create(
                 recipient=instance.service.barber,
                 type='booking_new',
                 title='Новое бронирование',
@@ -62,7 +69,9 @@ def send_booking_notification_signal(sender, instance, created, **kwargs):
                 status='pending'
             )
 
-            # Отправляем уведомление в фоновом потоке (чтобы не блокировать основной поток)
+            logger.info(f"Создано уведомление в БД: {notification.id}")
+
+            # Отправляем уведомление в фоновом потоке
             thread = threading.Thread(
                 target=send_notification_background,
                 args=(barber_id, booking_data)
@@ -74,3 +83,5 @@ def send_booking_notification_signal(sender, instance, created, **kwargs):
 
         except Exception as e:
             logger.error(f"Ошибка при создании уведомления для бронирования {instance.id}: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
