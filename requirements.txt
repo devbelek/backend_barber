@@ -16,7 +16,6 @@ drf-spectacular==0.27.2
 idna==3.10
 jwcrypto==1.5.6
 python-telegram-bot==20.7
-requests==2.31.0
 oauthlib==3.2.2
 pillow==11.2.1
 pycparser==2.22
