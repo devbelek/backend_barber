@@ -186,10 +186,20 @@ class ServiceViewSet(viewsets.ModelViewSet):
                 location_query |= Q(location__icontains=location)
             queryset = queryset.filter(location_query)
 
-        # Фильтр по барберу
+        # Фильтр по барберу - ИСПРАВЛЕННАЯ ВЕРСИЯ
         barber = self.request.query_params.get('barber')
         if barber:
-            queryset = queryset.filter(barber_id=barber)
+            if barber == 'me' and self.request.user.is_authenticated:
+                # Если передан 'me' и пользователь авторизован, фильтруем по текущему пользователю
+                queryset = queryset.filter(barber=self.request.user)
+            else:
+                # Проверяем, что barber - это число
+                try:
+                    barber_id = int(barber)
+                    queryset = queryset.filter(barber_id=barber_id)
+                except (ValueError, TypeError):
+                    # Если barber не число и не 'me', игнорируем фильтр
+                    pass
 
         # Поиск
         search = self.request.query_params.get('search')
