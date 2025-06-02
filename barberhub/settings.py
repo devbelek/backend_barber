@@ -14,7 +14,6 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',')
 # Application definition
 INSTALLED_APPS = [
-    'corsheaders',
     # Django Unfold должен быть перед django.contrib.admin
     "unfold",
     "unfold.contrib.filters",
