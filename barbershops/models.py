@@ -1,6 +1,193 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
+
+
+class BarbershopApplication(models.Model):
+    """Заявка на регистрацию барбершопа"""
+    STATUS_CHOICES = [
+        ('pending', 'Ожидает рассмотрения'),
+        ('approved', 'Одобрена'),
+        ('rejected', 'Отклонена'),
+    ]
+
+    # Данные заявителя
+    applicant_name = models.CharField(
+        max_length=200,
+        verbose_name='ФИО заявителя'
+    )
+    applicant_email = models.EmailField(
+        verbose_name='Email заявителя'
+    )
+    applicant_phone = models.CharField(
+        max_length=20,
+        verbose_name='Телефон заявителя'
+    )
+
+    # Данные барбершопа
+    barbershop_name = models.CharField(
+        max_length=200,
+        verbose_name='Название барбершопа'
+    )
+    barbershop_address = models.TextField(
+        verbose_name='Адрес барбершопа'
+    )
+    barbershop_description = models.TextField(
+        verbose_name='Описание барбершопа'
+    )
+
+    # Контактные данные барбершопа
+    barbershop_phone = models.CharField(
+        max_length=20,
+        verbose_name='Телефон барбершопа'
+    )
+    barbershop_whatsapp = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name='WhatsApp'
+    )
+    barbershop_instagram = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='Instagram'
+    )
+
+    # Дополнительная информация
+    barbers_count = models.IntegerField(
+        default=1,
+        verbose_name='Количество барберов'
+    )
+    working_experience = models.TextField(
+        verbose_name='Опыт работы',
+        help_text='Расскажите о вашем опыте в барбер-индустрии'
+    )
+    additional_info = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Дополнительная информация'
+    )
+
+    # Статус заявки
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        verbose_name='Статус'
+    )
+
+    # Связь с созданным барбершопом (после одобрения)
+    created_barbershop = models.OneToOneField(
+        'Barbershop',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='application',
+        verbose_name='Созданный барбершоп'
+    )
+
+    # Примечания админа
+    admin_notes = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Примечания администратора'
+    )
+
+    # Даты
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата подачи'
+    )
+    reviewed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Дата рассмотрения'
+    )
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_applications',
+        verbose_name='Рассмотрел'
+    )
+
+    class Meta:
+        verbose_name = 'Заявка на барбершоп'
+        verbose_name_plural = 'Заявки на барбершопы'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Заявка: {self.barbershop_name} ({self.get_status_display()})"
+
+    def approve(self, admin_user):
+        """Одобрить заявку и создать барбершоп"""
+        if self.status != 'pending':
+            raise ValueError('Можно одобрить только ожидающие заявки')
+
+        # Создаем пользователя для владельца
+        from django.contrib.auth.models import User
+        username = self.applicant_email.split('@')[0]
+        if User.objects.filter(username=username).exists():
+            username = f"{username}_{User.objects.count()}"
+
+        owner = User.objects.create_user(
+            username=username,
+            email=self.applicant_email,
+            first_name=self.applicant_name.split()[0] if self.applicant_name else '',
+            last_name=' '.join(self.applicant_name.split()[1:]) if len(self.applicant_name.split()) > 1 else ''
+        )
+
+        # Создаем профиль владельца
+        from users.models import UserProfile
+        UserProfile.objects.filter(user=owner).update(
+            user_type='barber',
+            phone=self.applicant_phone
+        )
+
+        # Создаем барбершоп
+        barbershop = Barbershop.objects.create(
+            owner=owner,
+            name=self.barbershop_name,
+            description=self.barbershop_description,
+            address=self.barbershop_address,
+            phone=self.barbershop_phone,
+            whatsapp=self.barbershop_whatsapp,
+            instagram=self.barbershop_instagram,
+            latitude=0,  # Позже владелец сможет указать
+            longitude=0,  # Позже владелец сможет указать
+            is_verified=True  # Уже проверен админом
+        )
+
+        # Добавляем владельца как staff
+        BarbershopStaff.objects.create(
+            barbershop=barbershop,
+            user=owner,
+            role='owner'
+        )
+
+        # Обновляем заявку
+        self.status = 'approved'
+        self.created_barbershop = barbershop
+        self.reviewed_at = timezone.now()
+        self.reviewed_by = admin_user
+        self.save()
+
+        return barbershop
+
+    def reject(self, admin_user, reason=None):
+        """Отклонить заявку"""
+        if self.status != 'pending':
+            raise ValueError('Можно отклонить только ожидающие заявки')
+
+        self.status = 'rejected'
+        self.reviewed_at = timezone.now()
+        self.reviewed_by = admin_user
+        if reason:
+            self.admin_notes = reason
+        self.save()
 
 
 class Barbershop(models.Model):
@@ -92,18 +279,25 @@ class Barbershop(models.Model):
 
     @property
     def rating(self):
-        """Средний рейтинг барбершопа на основе рейтингов барберов"""
-        from profiles.models import Review
-        reviews = Review.objects.filter(barber__barbershop_staff__barbershop=self)
+        """Средний рейтинг барбершопа на основе отзывов о барбершопе"""
+        reviews = self.barbershop_reviews.all()
         if reviews.exists():
             return round(reviews.aggregate(models.Avg('rating'))['rating__avg'], 1)
         return 0
 
     @property
     def review_count(self):
-        """Количество отзывов для барберов барбершопа"""
+        """Количество отзывов о барбершопе"""
+        return self.barbershop_reviews.count()
+
+    @property
+    def barbers_rating(self):
+        """Средний рейтинг барберов барбершопа"""
         from profiles.models import Review
-        return Review.objects.filter(barber__barbershop_staff__barbershop=self).count()
+        reviews = Review.objects.filter(barber__barbershop_staff__barbershop=self)
+        if reviews.exists():
+            return round(reviews.aggregate(models.Avg('rating'))['rating__avg'], 1)
+        return 0
 
 
 class BarbershopPhoto(models.Model):
@@ -172,3 +366,46 @@ class BarbershopStaff(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.barbershop.name}"
+
+
+class BarbershopReview(models.Model):
+    """Отзывы о барбершопах"""
+    RATING_CHOICES = [(i, f'{i} звезд{"а" if i == 1 else "ы" if i in [2, 3, 4] else ""}') for i in range(1, 6)]
+
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='barbershop_reviews',
+        verbose_name='Автор'
+    )
+    barbershop = models.ForeignKey(
+        Barbershop,
+        on_delete=models.CASCADE,
+        related_name='barbershop_reviews',
+        verbose_name='Барбершоп'
+    )
+    rating = models.IntegerField(
+        choices=RATING_CHOICES,
+        verbose_name='Рейтинг',
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    comment = models.TextField(
+        verbose_name='Комментарий'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Дата обновления'
+    )
+
+    class Meta:
+        verbose_name = 'Отзыв о барбершопе'
+        verbose_name_plural = 'Отзывы о барбершопах'
+        ordering = ['-created_at']
+        unique_together = ('author', 'barbershop')
+
+    def __str__(self):
+        return f"{self.author.username} → {self.barbershop.name} - {self.rating}★"

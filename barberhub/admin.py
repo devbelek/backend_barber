@@ -1,25 +1,65 @@
+from django.contrib.auth.models import User
+from barbershops.models import Barbershop, BarbershopApplication
+from services.models import Service
+from bookings.models import Booking
+from profiles.models import Review
+from django.utils import timezone
+from datetime import timedelta
+
+
 def dashboard_callback(request, context):
     """
-    Callback для отображения статистики на главной странице админки
+    Callback для dashboard в админке Django Unfold
     """
-    from services.models import Service
-    from bookings.models import Booking
-    from users.models import UserProfile
-    from django.contrib.auth.models import User
-    from django.utils import timezone
-    from datetime import timedelta
-
     # Статистика за последние 30 дней
-    last_month = timezone.now() - timedelta(days=30)
+    last_30_days = timezone.now() - timedelta(days=30)
 
+    # Основная статистика
     context.update({
-        "total_users": User.objects.count(),
-        "total_barbers": UserProfile.objects.filter(user_type='barber').count(),
-        "total_clients": UserProfile.objects.filter(user_type='client').count(),
-        "total_services": Service.objects.count(),
-        "total_bookings": Booking.objects.count(),
-        "recent_bookings": Booking.objects.filter(created_at__gte=last_month).count(),
-        "pending_bookings": Booking.objects.filter(status='pending').count(),
+        "stats": [
+            {
+                "label": "Пользователей",
+                "value": User.objects.count(),
+                "icon": "people",
+                "color": "primary",
+            },
+            {
+                "label": "Барбершопов",
+                "value": Barbershop.objects.filter(is_verified=True).count(),
+                "icon": "store",
+                "color": "success",
+            },
+            {
+                "label": "Услуг",
+                "value": Service.objects.count(),
+                "icon": "cut",
+                "color": "info",
+            },
+            {
+                "label": "Бронирований",
+                "value": Booking.objects.count(),
+                "icon": "calendar_today",
+                "color": "warning",
+            },
+        ],
+        "recent_stats": [
+            {
+                "label": "Новых пользователей (30 дней)",
+                "value": User.objects.filter(date_joined__gte=last_30_days).count(),
+                "trend": "up",
+            },
+            {
+                "label": "Новых бронирований (30 дней)",
+                "value": Booking.objects.filter(created_at__gte=last_30_days).count(),
+                "trend": "up",
+            },
+            {
+                "label": "Новых отзывов (30 дней)",
+                "value": Review.objects.filter(created_at__gte=last_30_days).count(),
+                "trend": "up",
+            },
+        ],
+        "pending_applications": BarbershopApplication.objects.filter(status='pending').count(),
     })
 
     return context
@@ -27,9 +67,7 @@ def dashboard_callback(request, context):
 
 def badge_callback(request):
     """
-    Callback для отображения бейджа с количеством ожидающих бронирований
+    Callback для badge в навигации
     """
-    from bookings.models import Booking
-
-    count = Booking.objects.filter(status='pending').count()
-    return count if count > 0 else None
+    pending_count = BarbershopApplication.objects.filter(status='pending').count()
+    return pending_count if pending_count > 0 else None
