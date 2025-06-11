@@ -252,10 +252,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS',
-                                      'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173').split(
-    ',')
+                                      'http://localhost:3000,http://localhost:5173,'
+                                      'http://127.0.0.1:3000,http://127.0.0.1:5173').split(',')
 
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://localhost:\d+$",
+    r"^http://127\.0\.0\.1:\d+$",
+]
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
@@ -269,6 +276,9 @@ CORS_ALLOW_HEADERS = [
     "x-google-auth",
     "x-google-email",
     "cache-control",
+    "x-requested-with",
+    "x-forwarded-for",
+    "x-forwarded-proto",
 ]
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -278,6 +288,16 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'x-total-count',
+]
+
+if not DEBUG:
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+else:
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 # Rest Framework settings
 REST_FRAMEWORK = {
@@ -477,9 +497,26 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        # 🔥 ДОБАВЬТЕ ЭТО для отладки авторизации:
+        'users': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
     },
     'root': {
         'handlers': ['console'],
         'level': 'INFO',
     },
+}
+
+GOOGLE_OAUTH2_CLIENT_ID = os.environ.get('GOOGLE_OAUTH2_CLIENT_ID', '')
+GOOGLE_OAUTH2_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET', '')
+
+GEOLOCATION_SETTINGS = {
+    'DEFAULT_LATITUDE': 42.8746,  # Бишкек
+    'DEFAULT_LONGITUDE': 74.5698,
+    'TIMEOUT': 10000,  # 10 секунд
+    'ENABLE_HIGH_ACCURACY': True,
+    'MAXIMUM_AGE': 60000,  # 1 минута
 }
